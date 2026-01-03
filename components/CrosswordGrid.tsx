@@ -792,10 +792,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   };
 
   return (
-    <div className={`${isMobile ? 'flex flex-col h-screen' : 'flex gap-6'} max-w-7xl mx-auto relative`}>
+    <div className={`${isMobile ? 'flex flex-col h-screen overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`}>
       
       {/* Left side - Grid */}
-      <div className={`flex flex-col ${isMobile ? 'flex-1 overflow-auto' : ''}`}>
+      <div className={`flex flex-col ${isMobile ? 'flex-shrink-0' : ''}`}>
         {/* Toolbar */}
         {!showAnswers && (
           <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
@@ -828,7 +828,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
             
             {/* Timer and Buttons */}
             <div className={`flex items-center ${isMobile ? 'justify-between' : 'justify-between'}`}>
-              <div className={`${isMobile ? 'text-base' : 'text-xl md:text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
+              <div className={`${isMobile ? 'text-sm' : 'text-xl md:text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
               {!isMobile && (
                 <div className="flex gap-2">
                   <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Rebus</button>
@@ -879,7 +879,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`inline-block border-2 border-black shadow-lg ${isMobile ? 'mx-auto' : ''}`}>
+        <div className={`inline-block border-2 border-black shadow-lg ${isMobile ? 'mx-auto mb-0' : ''}`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
               {row.map((cell, colIndex) => {
@@ -950,22 +950,16 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       {isMobile ? (
         /* Mobile: Single clue display + keyboard */
         <div className="flex flex-col">
-          <div className="bg-blue-100 p-2 border-t border-gray-300">
+          <div className="bg-blue-100 p-2">
             {selectedClue ? (
               (() => {
                 // Check if clue text fits in one line (roughly < 40 characters)
                 const isShortClue = selectedClue.text.length < 40;
-                return isShortClue ? (
-                  // Short clue: 1 line, centered, bigger
-                  <div className="text-center">
-                    <span className="font-bold text-base">{selectedClue.number}.</span>{' '}
-                    <span className="text-sm">{selectedClue.text}</span>
-                  </div>
-                ) : (
-                  // Long clue: 2 lines, smaller
+                return (
+                  // All clues: left-aligned
                   <div className="flex gap-1 items-start">
-                    <span className="font-bold text-sm shrink-0">{selectedClue.number}.</span>
-                    <span className="text-[11px] leading-tight">{selectedClue.text}</span>
+                    <span className={`font-bold ${isShortClue ? 'text-base' : 'text-sm'} shrink-0`}>{selectedClue.number}.</span>
+                    <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight`}>{selectedClue.text}</span>
                   </div>
                 );
               })()
