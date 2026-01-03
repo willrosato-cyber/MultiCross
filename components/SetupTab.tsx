@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Tesseract from 'tesseract.js';
 
 interface Clue {
@@ -45,8 +45,14 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
   const [isParsingClues, setIsParsingClues] = useState(false);
   const [clueParseProgress, setClueParseProgress] = useState(0);
   const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [showCreatePuzzle, setShowCreatePuzzle] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Update patternText when gridSize changes
+  useEffect(() => {
+    setPatternText(Array(gridSize).fill('1'.repeat(gridSize)).join('\n'));
+  }, [gridSize]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -710,10 +716,20 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
         </div>
       </div>
 
-      <div className="text-center my-6 text-gray-500 font-semibold text-sm md:text-base">
-        — OR CREATE A NEW PUZZLE —
+      {/* Create New Puzzle Button */}
+      <div className="mb-4 md:mb-6">
+        <button
+          onClick={() => setShowCreatePuzzle(!showCreatePuzzle)}
+          className="w-full px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-semibold transition text-sm md:text-base flex items-center justify-center gap-3"
+        >
+          <span>— OR CREATE A NEW PUZZLE —</span>
+          <span className="text-2xl">{showCreatePuzzle ? '−' : '+'}</span>
+        </button>
       </div>
 
+      {/* Collapsible Create Puzzle Section */}
+      {showCreatePuzzle && (
+      <>
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <button onClick={() => onGridSizeChange(15)} className={`px-4 md:px-6 py-2 rounded-lg font-semibold transition text-sm md:text-base ${gridSize === 15 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>Monday-Saturday (15×15)</button>
         <button onClick={() => onGridSizeChange(21)} className={`px-4 md:px-6 py-2 rounded-lg font-semibold transition text-sm md:text-base ${gridSize === 21 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>Sunday (21×21)</button>
@@ -981,6 +997,8 @@ DOWN
           </p>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
