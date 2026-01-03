@@ -187,12 +187,13 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     color: string;
   }>>([]);
   const [myColor, setMyColor] = useState<string>("#3B82F6"); // Default blue
+  const [isHandlingKeypress, setIsHandlingKeypress] = useState(false);
   const cellRefs = useRef<(HTMLDivElement | null)[][]>(
     Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null))
   );
   const acrossCluesRef = useRef<HTMLDivElement>(null);
   const downCluesRef = useRef<HTMLDivElement>(null);
-  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLDivElement | HTMLInputElement>(null);
 
   // Sync game state from Convex
   useEffect(() => {
@@ -379,7 +380,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       }
       
       // Focus the appropriate input (mobile or desktop)
-      if (!showAnswers) {
+      // Skip focusing if we're handling a keypress to avoid scroll snap
+      if (!showAnswers && !isHandlingKeypress) {
         if (isMobile && mobileInputRef.current) {
           mobileInputRef.current.focus({ preventScroll: true });
         } else {
@@ -390,7 +392,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         }
       }
     }
-  }, [selectedCell, direction, showAnswers, isMobile]);
+  }, [selectedCell, direction, showAnswers, isMobile, isHandlingKeypress]);
 
   const scrollToClue = (clue: Clue) => {
     // Don't auto-scroll on mobile to prevent disruptive jumps while typing
@@ -473,6 +475,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     }
 
     if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+      setIsHandlingKeypress(true);
       const newGridValues = gridValues.map(r => [...r]);
       newGridValues[row][col] = e.key.toUpperCase();
       setGridValues(newGridValues);
@@ -484,7 +487,9 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       
       // Move to next empty cell in current direction
       moveToNextEmptyCell(row, col);
+      setTimeout(() => setIsHandlingKeypress(false), 50);
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      setIsHandlingKeypress(true);
       // Update locally
       const newGridValues = gridValues.map(r => [...r]);
       newGridValues[row][col] = '';
@@ -515,6 +520,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
           }
         }
       }
+      setTimeout(() => setIsHandlingKeypress(false), 50);
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       // If in down mode, toggle to across without moving
@@ -743,31 +749,23 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
 
   return (
     <div className={`${isMobile ? 'flex flex-col' : 'flex gap-6'} max-w-7xl mx-auto relative`}>
-      {/* Hidden input for mobile keyboard */}
+      {/* Hidden contenteditable for mobile keyboard (avoids autofill bar) */}
       {isMobile && (
-        <input
-          ref={mobileInputRef}
-          type="text"
-          inputMode="text"
-          autoCapitalize="characters"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-          name="crossword-input"
-          data-form-type="other"
-          data-lpignore="true"
-          data-1p-ignore="true"
+        <div
+          ref={mobileInputRef as any}
+          contentEditable
+          suppressContentEditableWarning
           className="absolute opacity-0 pointer-events-none"
-          style={{ position: 'absolute', left: '-9999px' }}
+          style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px' }}
           onKeyDown={(e) => {
             if (selectedCell) {
               handleKeyDown(e as any, selectedCell.row, selectedCell.col);
             }
           }}
           onInput={(e) => {
-            // Clear the input after each character
-            const input = e.target as HTMLInputElement;
-            input.value = '';
+            // Clear the content after each character
+            const target = e.target as HTMLDivElement;
+            target.textContent = '';
           }}
         />
       )}

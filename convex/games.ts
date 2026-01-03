@@ -12,9 +12,10 @@ function generateJoinCode(): string {
 }
 
 // Player colors for cursor display
+// First player (creator) always gets blue, second player always gets red
 const PLAYER_COLORS = [
-  "#3B82F6", // blue
-  "#EF4444", // red
+  "#3B82F6", // blue - always first/creator
+  "#EF4444", // red - always second player
   "#10B981", // green
   "#F59E0B", // amber
   "#8B5CF6", // purple
@@ -115,14 +116,35 @@ export const joinGame = mutation({
     
     const players = game.players || [];
     
-    // Check if player already in game
-    const existingPlayer = players.find((p) => p.id === args.playerId);
-    if (existingPlayer) {
-      return game._id; // Already joined
+    // Dedupe by username (case-insensitive)
+    const existingPlayerByName = players.find(
+      (p) => p.name.toLowerCase() === args.playerName.toLowerCase()
+    );
+    
+    if (existingPlayerByName) {
+      // Update existing player with new ID (they logged in again)
+      const updatedPlayers = players.map((p) =>
+        p.name.toLowerCase() === args.playerName.toLowerCase()
+          ? { ...p, id: args.playerId }
+          : p
+      );
+      
+      await ctx.db.patch(game._id, {
+        players: updatedPlayers,
+        updatedAt: Date.now(),
+      });
+      
+      return game._id;
     }
     
+    // Get unique usernames to determine color assignment
+    const uniqueUsernames = new Set(players.map(p => p.name.toLowerCase()));
+    const userIndex = uniqueUsernames.size;
+    
+    // First player (creator) = blue, second player = red, then cycle through rest
+    let assignedColor = PLAYER_COLORS[userIndex % PLAYER_COLORS.length];
+    
     // Add new player
-    const colorIndex = players.length % PLAYER_COLORS.length;
     await ctx.db.patch(game._id, {
       players: [
         ...players,
@@ -131,7 +153,7 @@ export const joinGame = mutation({
           name: args.playerName,
           selectedCell: null,
           direction: "across",
-          color: PLAYER_COLORS[colorIndex],
+          color: assignedColor,
         },
       ],
       updatedAt: Date.now(),
