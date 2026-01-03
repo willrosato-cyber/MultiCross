@@ -205,7 +205,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       const vw = window.innerWidth;
       
       // Fixed heights
-      const headerHeight = 40; // hamburger + title
+      const headerHeight = 40; // page.tsx: hamburger + title
       const toolbarHeight = 28; // timer + players
       const clueHeight = 40;
       const keyboardHeight = 130;
@@ -827,13 +827,13 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   };
 
   return (
-    <div className={`${isMobile ? 'flex flex-col h-screen overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`}>
+    <div className={`${isMobile ? 'flex flex-col overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`} style={isMobile ? { height: 'calc(100vh - 40px)' } : {}}>
       
       {/* Left side - Grid */}
       <div className={`flex flex-col ${isMobile ? 'flex-1 min-h-0' : ''}`}>
         {/* Toolbar */}
         {!showAnswers && (
-          <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0 px-2' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
+          <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0 px-2 flex-shrink-0' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
             {/* Game Code Display */}
             {joinCode && !isMobile && (
               <div className={`flex ${isMobile ? 'flex-col gap-1' : 'items-center justify-between'} bg-blue-50 px-2 md:px-4 py-1 md:py-2 rounded-lg border-2 border-blue-200`}>
@@ -915,7 +915,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0' : ''}`}>
+        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0 mb-[170px]' : ''}`}>
           <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
