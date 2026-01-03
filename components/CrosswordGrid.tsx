@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import MobileKeyboard from "./MobileKeyboard";
 
 const GRID_SIZE = 15;
 
@@ -193,7 +194,6 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   );
   const acrossCluesRef = useRef<HTMLDivElement>(null);
   const downCluesRef = useRef<HTMLDivElement>(null);
-  const mobileInputRef = useRef<HTMLDivElement | HTMLInputElement>(null);
 
   // Sync game state from Convex
   useEffect(() => {
@@ -352,11 +352,6 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       }
     }
     
-    // Focus mobile input to show keyboard
-    if (isMobile && mobileInputRef.current) {
-      mobileInputRef.current.focus({ preventScroll: true });
-    }
-    
     // Find and update the clue for this cell
     const clue = findClueForCell(row, col, direction);
     if (clue) setSelectedClue(clue);
@@ -381,14 +376,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       
       // Focus the appropriate input (mobile or desktop)
       // Skip focusing if we're handling a keypress to avoid scroll snap
-      if (!showAnswers && !isHandlingKeypress) {
-        if (isMobile && mobileInputRef.current) {
-          mobileInputRef.current.focus({ preventScroll: true });
-        } else {
-          const cellRef = cellRefs.current[selectedCell.row]?.[selectedCell.col];
-          if (cellRef) {
-            cellRef.focus();
-          }
+      if (!showAnswers && !isHandlingKeypress && !isMobile) {
+        const cellRef = cellRefs.current[selectedCell.row]?.[selectedCell.col];
+        if (cellRef) {
+          cellRef.focus();
         }
       }
     }
@@ -634,6 +625,59 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     }
   };
 
+  // Mobile keyboard handlers
+  const handleMobileKeyPress = (key: string) => {
+    if (!selectedCell) return;
+    
+    setIsHandlingKeypress(true);
+    const newGridValues = gridValues.map(r => [...r]);
+    newGridValues[selectedCell.row][selectedCell.col] = key.toUpperCase();
+    setGridValues(newGridValues);
+    
+    // Sync to Convex
+    if (gameId) {
+      updateCell({ gameId, row: selectedCell.row, col: selectedCell.col, value: key.toUpperCase() });
+    }
+    
+    // Move to next empty cell
+    moveToNextEmptyCell(selectedCell.row, selectedCell.col);
+    setTimeout(() => setIsHandlingKeypress(false), 50);
+  };
+
+  const handleMobileBackspace = () => {
+    if (!selectedCell) return;
+    
+    setIsHandlingKeypress(true);
+    const newGridValues = gridValues.map(r => [...r]);
+    newGridValues[selectedCell.row][selectedCell.col] = '';
+    setGridValues(newGridValues);
+    
+    // Sync to Convex
+    if (gameId) {
+      updateCell({ gameId, row: selectedCell.row, col: selectedCell.col, value: '' });
+    }
+    
+    // Move to previous cell
+    if (direction === 'across') {
+      let prevCol = selectedCell.col - 1;
+      while (prevCol >= 0 && isBlackSquare(selectedCell.row, prevCol)) {
+        prevCol--;
+      }
+      if (prevCol >= 0) {
+        setSelectedCell({ row: selectedCell.row, col: prevCol });
+      }
+    } else {
+      let prevRow = selectedCell.row - 1;
+      while (prevRow >= 0 && isBlackSquare(prevRow, selectedCell.col)) {
+        prevRow--;
+      }
+      if (prevRow >= 0) {
+        setSelectedCell({ row: prevRow, col: selectedCell.col });
+      }
+    }
+    setTimeout(() => setIsHandlingKeypress(false), 50);
+  };
+
   const moveToNextClue = () => {
     const clues = direction === 'across' ? acrossClues : downClues;
     
@@ -748,30 +792,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   };
 
   return (
-    <div className={`${isMobile ? 'flex flex-col' : 'flex gap-6'} max-w-7xl mx-auto relative`}>
-      {/* Hidden contenteditable for mobile keyboard (avoids autofill bar) */}
-      {isMobile && (
-        <div
-          ref={mobileInputRef as any}
-          contentEditable
-          suppressContentEditableWarning
-          className="absolute opacity-0 pointer-events-none"
-          style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px' }}
-          onKeyDown={(e) => {
-            if (selectedCell) {
-              handleKeyDown(e as any, selectedCell.row, selectedCell.col);
-            }
-          }}
-          onInput={(e) => {
-            // Clear the content after each character
-            const target = e.target as HTMLDivElement;
-            target.textContent = '';
-          }}
-        />
-      )}
+    <div className={`${isMobile ? 'flex flex-col h-screen' : 'flex gap-6'} max-w-7xl mx-auto relative`}>
       
       {/* Left side - Grid */}
-      <div className="flex flex-col">
+      <div className="flex flex-col flex-1 overflow-hidden">
         {/* Toolbar */}
         {!showAnswers && (
           <div className={`flex flex-col gap-2 mb-2 md:mb-4 bg-white p-2 rounded-lg shadow`}>
@@ -855,7 +879,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className="inline-block border-2 border-black shadow-lg overflow-x-auto">
+        <div className={`inline-block border-2 border-black shadow-lg ${isMobile ? 'mx-auto' : ''}`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
               {row.map((cell, colIndex) => {
@@ -872,7 +896,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 // Get the first other player's color for the ring (if multiple players, just show one)
                 const otherPlayerColor = otherPlayersHere.length > 0 ? otherPlayersHere[0].color : null;
                 
-                const cellSize = isMobile ? 'w-6 h-6 text-xs' : 'w-10 h-10 text-xl';
+                const cellSize = isMobile ? 'w-[18px] h-[18px] text-[10px]' : 'w-10 h-10 text-xl';
                 
                 return (
                   <div
@@ -922,70 +946,36 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         </div>
       </div>
 
-      {/* Right side - Clues (Desktop: two columns, Mobile: single clue) */}
+      {/* Right side - Clues (Desktop: two columns, Mobile: single clue + keyboard) */}
       {isMobile ? (
-        /* Mobile: Single clue display */
-        <div className="mt-2 bg-white p-2 rounded-lg shadow">
-          {selectedClue ? (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-600 uppercase">{direction}</span>
-                <span className="text-xs text-gray-500">
-                  {direction === 'across' ? acrossClues.findIndex(c => c.number === selectedClue.number) + 1 : downClues.findIndex(c => c.number === selectedClue.number) + 1} 
-                  {' of '}
-                  {direction === 'across' ? acrossClues.length : downClues.length}
-                </span>
+        /* Mobile: Single clue display + keyboard */
+        <div className="flex flex-col">
+          <div className="bg-blue-100 p-2 border-t border-gray-300">
+            {selectedClue ? (
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase">{direction}</span>
+                  <span className="text-[10px] text-gray-500">
+                    {direction === 'across' ? acrossClues.findIndex(c => c.number === selectedClue.number) + 1 : downClues.findIndex(c => c.number === selectedClue.number) + 1} 
+                    {' of '}
+                    {direction === 'across' ? acrossClues.length : downClues.length}
+                  </span>
+                </div>
+                <div className="flex gap-1 items-start">
+                  <span className="font-bold text-sm shrink-0">{selectedClue.number}</span>
+                  <span className="text-[11px] leading-tight">{selectedClue.text}</span>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <span className="font-bold text-base">{selectedClue.number}</span>
-                <span className="text-xs leading-tight">{selectedClue.text}</span>
+            ) : (
+              <div className="text-center text-gray-400 text-xs py-2">
+                Select a cell to see its clue
               </div>
-              <div className="flex gap-1 mt-1">
-                <button
-                  onClick={() => {
-                    const currentList = direction === 'across' ? acrossClues : downClues;
-                    const currentIndex = currentList.findIndex(c => c.number === selectedClue.number);
-                    if (currentIndex > 0) {
-                      const prevClue = currentList[currentIndex - 1];
-                      setSelectedCell({ row: prevClue.row, col: prevClue.col });
-                      setSelectedClue(prevClue);
-                    }
-                  }}
-                  className="flex-1 px-2 py-1 bg-gray-200 rounded text-xs font-semibold disabled:opacity-50"
-                  disabled={
-                    direction === 'across'
-                      ? acrossClues.findIndex(c => c.number === selectedClue.number) === 0
-                      : downClues.findIndex(c => c.number === selectedClue.number) === 0
-                  }
-                >
-                  ← Prev
-                </button>
-                <button
-                  onClick={() => {
-                    const currentList = direction === 'across' ? acrossClues : downClues;
-                    const currentIndex = currentList.findIndex(c => c.number === selectedClue.number);
-                    if (currentIndex < currentList.length - 1) {
-                      const nextClue = currentList[currentIndex + 1];
-                      setSelectedCell({ row: nextClue.row, col: nextClue.col });
-                      setSelectedClue(nextClue);
-                    }
-                  }}
-                  className="flex-1 px-2 py-1 bg-gray-200 rounded text-xs font-semibold disabled:opacity-50"
-                  disabled={
-                    direction === 'across'
-                      ? acrossClues.findIndex(c => c.number === selectedClue.number) === acrossClues.length - 1
-                      : downClues.findIndex(c => c.number === selectedClue.number) === downClues.length - 1
-                  }
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center text-gray-400 text-sm py-4">
-              Select a cell to see its clue
-            </div>
-          )}
+            )}
+          </div>
+          <MobileKeyboard 
+            onKeyPress={handleMobileKeyPress}
+            onBackspace={handleMobileBackspace}
+          />
         </div>
       ) : (
         /* Desktop: Two-column clue list */
