@@ -7,6 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import CrosswordGrid from "@/components/CrosswordGrid";
 import SetupTab from "@/components/SetupTab";
 import LoginPage from "@/components/LoginPage";
+import HamburgerMenu from "@/components/HamburgerMenu";
 
 interface Clue {
   number: number;
@@ -159,15 +160,32 @@ export default function Home() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  const subtitle = playerName === 'saran' ? 'Hi Sara!' : playerName === 'billy' ? 'Play like a champion today' : 'Welcome!';
+
   return (
-    <main className="min-h-screen p-2 md:p-8 bg-gray-50">
+    <main className="min-h-screen p-0 md:p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        {/* Compact Mobile Header with Hamburger */}
+        <div className="md:hidden flex items-center justify-between p-2 bg-white border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <HamburgerMenu
+              playerName={playerName}
+              subtitle={subtitle}
+              joinCode={joinCode}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onLogout={handleLogout}
+              canPlay={!!gridPattern}
+            />
+            <h1 className="text-lg font-bold text-gray-900">MultiCross</h1>
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden md:flex mb-6 flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">MultiCross</h1>
-            <p className="text-gray-600 mt-1">
-              {playerName === 'saran' ? 'Hi Sara!' : playerName === 'billy' ? 'Play like a champion today' : 'Welcome!'}
-            </p>
+            <p className="text-gray-600 mt-1">{subtitle}</p>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm md:text-base text-gray-700 font-medium">
@@ -182,8 +200,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6 overflow-x-auto">
+        {/* Desktop Tab Navigation */}
+        <div className="hidden md:flex gap-2 mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('setup')}
             className={`px-4 md:px-6 py-3 rounded-t-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
@@ -208,7 +226,7 @@ export default function Home() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-lg p-2 md:p-6">
+        <div className="bg-white md:rounded-lg md:shadow-lg p-0 md:p-2">
           <div style={{ display: activeTab === 'setup' ? 'block' : 'none' }}>
             <SetupTab 
               onComplete={handleSetupComplete} 

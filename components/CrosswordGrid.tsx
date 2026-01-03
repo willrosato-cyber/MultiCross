@@ -795,12 +795,12 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     <div className={`${isMobile ? 'flex flex-col h-screen' : 'flex gap-6'} max-w-7xl mx-auto relative`}>
       
       {/* Left side - Grid */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className={`flex flex-col ${isMobile ? 'flex-1 overflow-auto' : ''}`}>
         {/* Toolbar */}
         {!showAnswers && (
-          <div className={`flex flex-col gap-2 mb-2 md:mb-4 bg-white p-2 rounded-lg shadow`}>
+          <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
             {/* Game Code Display */}
-            {joinCode && (
+            {joinCode && !isMobile && (
               <div className={`flex ${isMobile ? 'flex-col gap-1' : 'items-center justify-between'} bg-blue-50 px-2 md:px-4 py-1 md:py-2 rounded-lg border-2 border-blue-200`}>
                 <div className="flex items-center gap-2 md:gap-3">
                   <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-blue-700 font-semibold`}>CODE:</span>
@@ -828,7 +828,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
             
             {/* Timer and Buttons */}
             <div className={`flex items-center ${isMobile ? 'justify-between' : 'justify-between'}`}>
-              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
+              <div className={`${isMobile ? 'text-base' : 'text-xl md:text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
               {!isMobile && (
                 <div className="flex gap-2">
                   <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Rebus</button>
@@ -842,12 +842,12 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
             
             {/* Players List */}
             {game && game.players && (
-              <div className={`flex items-center gap-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                <span className="text-gray-600 font-semibold">Players:</span>
+              <div className={`flex items-center gap-1 md:gap-2 ${isMobile ? 'text-[10px]' : 'text-sm'}`}>
+                {!isMobile && <span className="text-gray-600 font-semibold">Players:</span>}
                 {game.players.map((player) => (
-                  <div key={player.id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                  <div key={player.id} className={`flex items-center gap-0.5 md:gap-1 bg-gray-100 px-1 md:px-2 py-0.5 md:py-1 rounded`}>
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`}
                       style={{ backgroundColor: player.color }}
                     ></div>
                     <span className={player.id === playerId ? "font-bold" : ""}>{player.name}</span>
@@ -952,23 +952,26 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         <div className="flex flex-col">
           <div className="bg-blue-100 p-2 border-t border-gray-300">
             {selectedClue ? (
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-blue-600 uppercase">{direction}</span>
-                  <span className="text-[10px] text-gray-500">
-                    {direction === 'across' ? acrossClues.findIndex(c => c.number === selectedClue.number) + 1 : downClues.findIndex(c => c.number === selectedClue.number) + 1} 
-                    {' of '}
-                    {direction === 'across' ? acrossClues.length : downClues.length}
-                  </span>
-                </div>
-                <div className="flex gap-1 items-start">
-                  <span className="font-bold text-sm shrink-0">{selectedClue.number}</span>
-                  <span className="text-[11px] leading-tight">{selectedClue.text}</span>
-                </div>
-              </div>
+              (() => {
+                // Check if clue text fits in one line (roughly < 40 characters)
+                const isShortClue = selectedClue.text.length < 40;
+                return isShortClue ? (
+                  // Short clue: 1 line, centered, bigger
+                  <div className="text-center">
+                    <span className="font-bold text-base">{selectedClue.number}.</span>{' '}
+                    <span className="text-sm">{selectedClue.text}</span>
+                  </div>
+                ) : (
+                  // Long clue: 2 lines, smaller
+                  <div className="flex gap-1 items-start">
+                    <span className="font-bold text-sm shrink-0">{selectedClue.number}.</span>
+                    <span className="text-[11px] leading-tight">{selectedClue.text}</span>
+                  </div>
+                );
+              })()
             ) : (
-              <div className="text-center text-gray-400 text-xs py-2">
-                Select a cell to see its clue
+              <div className="text-center text-gray-400 text-xs py-1">
+                Select a cell
               </div>
             )}
           </div>
