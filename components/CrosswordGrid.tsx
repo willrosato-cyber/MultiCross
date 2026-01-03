@@ -353,7 +353,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     
     // Focus mobile input to show keyboard
     if (isMobile && mobileInputRef.current) {
-      mobileInputRef.current.focus();
+      mobileInputRef.current.focus({ preventScroll: true });
     }
     
     // Find and update the clue for this cell
@@ -381,7 +381,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       // Focus the appropriate input (mobile or desktop)
       if (!showAnswers) {
         if (isMobile && mobileInputRef.current) {
-          mobileInputRef.current.focus();
+          mobileInputRef.current.focus({ preventScroll: true });
         } else {
           const cellRef = cellRefs.current[selectedCell.row]?.[selectedCell.col];
           if (cellRef) {
