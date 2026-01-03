@@ -830,7 +830,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     <div className={`${isMobile ? 'flex flex-col h-screen overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`}>
       
       {/* Left side - Grid */}
-      <div className={`flex flex-col ${isMobile ? '' : ''}`}>
+      <div className={`flex flex-col ${isMobile ? 'flex-1 min-h-0' : ''}`}>
         {/* Toolbar */}
         {!showAnswers && (
           <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0 px-2' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
@@ -915,7 +915,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`${isMobile ? 'flex items-center justify-center' : ''}`}>
+        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0' : ''}`}>
           <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
@@ -999,16 +999,16 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
 
       {/* Right side - Clues (Desktop: two columns, Mobile: single clue + keyboard) */}
       {isMobile ? (
-        /* Mobile: Single clue display + keyboard - Fixed at bottom */
-        <div className="flex flex-col flex-shrink-0">
-          <div className="bg-blue-100 p-2 h-[40px] flex items-center justify-center">
+        /* Mobile: Clue banner + keyboard glued together at bottom */
+        <div className="fixed bottom-0 left-0 right-0 flex flex-col flex-shrink-0">
+          <div className="bg-blue-100 p-2 h-[40px] flex items-center">
             {selectedClue ? (
               (() => {
                 // Check if clue text fits in one line (roughly < 40 characters)
                 const isShortClue = selectedClue.text.length < 40;
                 return (
-                  // Short clues: centered, Long clues: left-aligned
-                  <div className={`flex gap-1 ${isShortClue ? 'items-center justify-center' : 'items-start'} w-full`}>
+                  // All clues: left-aligned, short clues centered vertically
+                  <div className={`flex gap-1 items-start w-full ${isShortClue ? 'items-center' : ''}`}>
                     <span className={`font-bold ${isShortClue ? 'text-base' : 'text-sm'} shrink-0`}>{selectedClue.number}.</span>
                     <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
                   </div>
@@ -1020,7 +1020,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               </div>
             )}
           </div>
-          <div className="fixed bottom-0 left-0 right-0 h-[130px]">
+          <div className="h-[130px]">
             <MobileKeyboard 
               onKeyPress={handleMobileKeyPress}
               onBackspace={handleMobileBackspace}
