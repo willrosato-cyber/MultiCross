@@ -206,9 +206,9 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       
       // Fixed heights
       const headerHeight = 40; // page.tsx: hamburger + title
-      const toolbarHeight = 28; // timer + players
+      const toolbarHeight = 28; // timer + players (including padding)
       const clueHeight = 40;
-      const keyboardHeight = 130;
+      const keyboardHeight = 110; // Reduced from 130px (2 rows instead of 3)
       const totalFixedHeight = headerHeight + toolbarHeight + clueHeight + keyboardHeight;
       
       // Available space for grid
@@ -915,7 +915,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0 mb-[170px]' : ''}`}>
+        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0 mb-[150px]' : ''}`}>
           <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
@@ -1020,7 +1020,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               </div>
             )}
           </div>
-          <div className="h-[130px]">
+          <div className="h-[110px]">
             <MobileKeyboard 
               onKeyPress={handleMobileKeyPress}
               onBackspace={handleMobileBackspace}
