@@ -230,6 +230,13 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     return () => window.removeEventListener('resize', calculateGridSize);
   }, [isMobile, gridSize]);
 
+  // Ensure no initial scroll on mobile
+  useEffect(() => {
+    if (isMobile) {
+      window.scrollTo(0, 0);
+    }
+  }, [isMobile]);
+
   // Sync game state from Convex
   useEffect(() => {
     if (game && gameId) {

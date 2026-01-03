@@ -39,18 +39,18 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
       </div>
 
       {/* Row 3: Z-M (offset like real keyboard) + Backspace */}
-      <div className="flex gap-[6px] justify-center items-center px-[36px]">
-        <div className="flex gap-[6px]">
-          {bottomRow.map((key) => (
-            <button
-              key={key}
-              onClick={() => onKeyPress(key)}
-              className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
-            >
-              {key}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-[6px] px-[18px]">
+        {/* Left spacer for stagger effect */}
+        <div className="w-[18px]"></div>
+        {bottomRow.map((key) => (
+          <button
+            key={key}
+            onClick={() => onKeyPress(key)}
+            className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+          >
+            {key}
+          </button>
+        ))}
         <button
           onClick={onBackspace}
           className="h-[44px] flex-1 bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
