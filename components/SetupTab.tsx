@@ -946,21 +946,23 @@ DOWN
           </p>
           {previewPattern ? (
             <div className="flex justify-center">
-              <div className={`inline-block border-2 border-black ${GRID_SIZE === 21 ? 'grid-cols-21' : ''}`}>
+              <div className={`inline-block border-2 border-black`}>
                 {previewPattern.map((row, rowIndex) => (
                   <div key={rowIndex} className="flex">
                     {row.map((cell, colIndex) => {
                       const clueNumber = liveClueNumbers ? liveClueNumbers[rowIndex]?.[colIndex] : 0;
+                      const cellSize = GRID_SIZE === 21 ? 'w-6 h-6' : 'w-8 h-8';
+                      const fontSize = GRID_SIZE === 21 ? 'text-[6px]' : 'text-[8px]';
                       return (
                         <div
                           key={`${rowIndex}-${colIndex}`}
                           onClick={() => handleCellClick(rowIndex, colIndex)}
-                          className={`relative w-8 h-8 border border-gray-300 flex items-center justify-center text-xs font-bold cursor-pointer transition-all hover:ring-2 hover:ring-blue-400 ${
+                          className={`relative ${cellSize} border border-gray-300 flex items-center justify-center text-xs font-bold cursor-pointer transition-all hover:ring-2 hover:ring-blue-400 ${
                             cell === 0 ? 'bg-black hover:bg-gray-800' : 'bg-white hover:bg-gray-100'
                           }`}
                         >
                           {cell === 1 && clueNumber > 0 && (
-                            <span className="absolute top-0 left-0.5 text-[8px] font-normal text-gray-700">
+                            <span className={`absolute top-0 left-0.5 ${fontSize} font-normal text-gray-700`}>
                               {clueNumber}
                             </span>
                           )}
