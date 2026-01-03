@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import CrosswordGrid from "@/components/CrosswordGrid";
 import SetupTab from "@/components/SetupTab";
+import LoginPage from "@/components/LoginPage";
 
 interface Clue {
   number: number;
@@ -17,6 +18,7 @@ interface Clue {
 }
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'setup' | 'play' | 'answers'>('setup');
   const [gridPattern, setGridPattern] = useState<number[][] | null>(null);
   const [gridNumbers, setGridNumbers] = useState<number[][] | null>(null);
@@ -31,6 +33,16 @@ export default function Home() {
   const joinGame = useMutation(api.games.joinGame);
   const gameData = useQuery(api.games.getGame, gameId ? { gameId } : "skip");
 
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    const authenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const storedUsername = localStorage.getItem('username');
+    if (authenticated && storedUsername) {
+      setIsAuthenticated(true);
+      setPlayerName(storedUsername);
+    }
+  }, []);
+
   // Sync game data from Convex when gameId changes
   useEffect(() => {
     if (gameData && !gridPattern) {
@@ -43,15 +55,33 @@ export default function Home() {
     }
   }, [gameData, gridPattern]);
 
-  // Generate player ID on mount
+  // Generate player ID on mount (only if authenticated)
   useEffect(() => {
-    const id = localStorage.getItem('playerId') || `player_${Math.random().toString(36).substr(2, 9)}`;
-    const name = localStorage.getItem('playerName') || `Player ${Math.floor(Math.random() * 1000)}`;
-    localStorage.setItem('playerId', id);
-    localStorage.setItem('playerName', name);
-    setPlayerId(id);
-    setPlayerName(name);
-  }, []);
+    if (isAuthenticated) {
+      const id = localStorage.getItem('playerId') || `player_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('playerId', id);
+      setPlayerId(id);
+      // playerName is already set from authentication
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = (username: string) => {
+    localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('username', username);
+    setIsAuthenticated(true);
+    setPlayerName(username);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    setIsAuthenticated(false);
+    setPlayerName('');
+    // Reset game state
+    setGameId(null);
+    setJoinCode('');
+    setActiveTab('setup');
+  };
 
   const handleSetupComplete = async (pattern: number[][], numbers: number[][], cluesData: { across: Clue[]; down: Clue[] }) => {
     console.log("=== handleSetupComplete called ===");
@@ -124,12 +154,30 @@ export default function Home() {
     setGridSize(size);
   };
 
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <main className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-900">MultiCross</h1>
-          <p className="text-gray-600 mt-1">Hi Sara!</p>
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">MultiCross</h1>
+            <p className="text-gray-600 mt-1">Hi Sara!</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-700 font-medium">
+              Logged in as: <span className="text-blue-600">{playerName}</span>
+            </span>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
