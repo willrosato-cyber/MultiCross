@@ -753,6 +753,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
           autoComplete="off"
           autoCorrect="off"
           spellCheck="false"
+          name="crossword-input"
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
           className="absolute opacity-0 pointer-events-none"
           style={{ position: 'absolute', left: '-9999px' }}
           onKeyDown={(e) => {
