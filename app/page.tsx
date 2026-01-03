@@ -155,6 +155,13 @@ export default function Home() {
     setGridSize(size);
   };
 
+  // Scroll to top when play tab becomes active
+  useEffect(() => {
+    if (activeTab === 'play') {
+      window.scrollTo(0, 0);
+    }
+  }, [activeTab]);
+
   // Show login page if not authenticated
   if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} />;

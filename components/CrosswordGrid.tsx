@@ -641,6 +641,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         if (isBlackSquare(currentRow, col)) break; // Stop at black square (end of word)
         if (gridValues[currentRow][col] === '') {
           setSelectedCell({ row: currentRow, col });
+          // Sync selection to Convex
+          if (gameId && playerId) {
+            updateSelection({ gameId, playerId, selectedCell: { row: currentRow, col }, direction });
+          }
           return;
         }
       }
@@ -652,6 +656,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         if (isBlackSquare(row, currentCol)) break; // Stop at black square (end of word)
         if (gridValues[row][currentCol] === '') {
           setSelectedCell({ row, col: currentCol });
+          // Sync selection to Convex
+          if (gameId && playerId) {
+            updateSelection({ gameId, playerId, selectedCell: { row, col: currentCol }, direction });
+          }
           return;
         }
       }
@@ -728,6 +736,32 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     if (nextClue) {
       setSelectedCell({ row: nextClue.row, col: nextClue.col });
       setSelectedClue(nextClue);
+      // Sync to Convex
+      if (gameId && playerId) {
+        updateSelection({ gameId, playerId, selectedCell: { row: nextClue.row, col: nextClue.col }, direction });
+      }
+    }
+  };
+
+  const moveToPrevClue = () => {
+    const clues = direction === 'across' ? acrossClues : downClues;
+    
+    // Find current clue
+    const currentClueIndex = clues.findIndex(clue => 
+      selectedClue?.number === clue.number
+    );
+    
+    // Move to previous clue (wrap around to end if at beginning)
+    const prevClueIndex = currentClueIndex > 0 ? currentClueIndex - 1 : clues.length - 1;
+    const prevClue = clues[prevClueIndex];
+    
+    if (prevClue) {
+      setSelectedCell({ row: prevClue.row, col: prevClue.col });
+      setSelectedClue(prevClue);
+      // Sync to Convex
+      if (gameId && playerId) {
+        updateSelection({ gameId, playerId, selectedCell: { row: prevClue.row, col: prevClue.col }, direction });
+      }
     }
   };
 
@@ -1001,24 +1035,35 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       {isMobile ? (
         /* Mobile: Clue banner + keyboard glued together at bottom */
         <div className="fixed bottom-0 left-0 right-0 flex flex-col flex-shrink-0">
-          <div className="bg-blue-100 p-2 h-[40px] flex items-center">
+          <div className="bg-blue-100 p-2 h-[40px] flex items-center justify-between gap-2">
+            <button
+              onClick={moveToPrevClue}
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 active:bg-gray-200"
+            >
+              ←
+            </button>
             {selectedClue ? (
               (() => {
                 // Check if clue text fits in one line (roughly < 40 characters)
                 const isShortClue = selectedClue.text.length < 40;
                 return (
                   // All clues: left-aligned, short clues centered vertically
-                  <div className={`flex gap-1 items-start w-full ${isShortClue ? 'items-center' : ''}`}>
-                    <span className={`font-bold ${isShortClue ? 'text-base' : 'text-sm'} shrink-0`}>{selectedClue.number}.</span>
+                  <div className={`flex-1 flex items-start ${isShortClue ? 'items-center' : ''} min-w-0`}>
                     <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
                   </div>
                 );
               })()
             ) : (
-              <div className="text-center text-gray-400 text-xs w-full">
+              <div className="flex-1 text-center text-gray-400 text-xs">
                 Select a cell
               </div>
             )}
+            <button
+              onClick={moveToNextClue}
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 active:bg-gray-200"
+            >
+              →
+            </button>
           </div>
           <div className="h-[125px]">
             <MobileKeyboard 
