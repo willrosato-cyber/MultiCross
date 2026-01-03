@@ -38,9 +38,9 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
         ))}
       </div>
 
-      {/* Row 3: Z-M (centered) + Backspace */}
-      <div className="flex gap-[6px] justify-center items-center">
-        <div className="flex gap-[6px] justify-center">
+      {/* Row 3: Z-M (offset like real keyboard) + Backspace */}
+      <div className="flex gap-[6px] justify-center items-center px-[36px]">
+        <div className="flex gap-[6px]">
           {bottomRow.map((key) => (
             <button
               key={key}
