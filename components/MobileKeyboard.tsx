@@ -53,7 +53,7 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
         </div>
         <button
           onClick={onBackspace}
-          className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
+          className="h-[44px] flex-1 bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
         >
           ⌫
         </button>

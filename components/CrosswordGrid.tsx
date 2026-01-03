@@ -991,13 +991,13 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 
                 const cellSize = isMobile 
                   ? `w-[${gridCellSize}px] h-[${gridCellSize}px]`
-                  : 'w-10 h-10';
+                  : GRID_SIZE === 21 ? 'w-[30px] h-[30px]' : 'w-10 h-10';
                 const fontSize = isMobile
                   ? `text-[${Math.floor(gridCellSize * 0.6)}px]`
-                  : 'text-xl';
+                  : GRID_SIZE === 21 ? 'text-lg' : 'text-xl';
                 const numberSize = isMobile
                   ? `text-[${Math.floor(gridCellSize * 0.35)}px]`
-                  : 'text-[9px]';
+                  : GRID_SIZE === 21 ? 'text-[7px]' : 'text-[9px]';
                 
                 return (
                   <div
@@ -1034,7 +1034,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                     {!isBlack && cellNumber && (
                       <span 
                         className={`absolute top-0 left-0.5 font-normal`}
-                        style={isMobile ? { fontSize: `${Math.floor(gridCellSize * 0.35)}px` } : { fontSize: '9px' }}
+                        style={isMobile ? { fontSize: `${Math.floor(gridCellSize * 0.35)}px` } : { fontSize: GRID_SIZE === 21 ? '7px' : '9px' }}
                       >
                         {cellNumber}
                       </span>
@@ -1100,7 +1100,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         </div>
       ) : (
         /* Desktop: Two-column clue list */
-        <div className="flex-1 bg-white p-6 rounded-lg shadow max-h-[680px] flex flex-col">
+        <div className={`flex-1 min-w-[600px] bg-white p-6 rounded-lg shadow flex flex-col ${GRID_SIZE === 21 ? 'max-h-[630px]' : 'max-h-[680px]'}`}>
           <div className="grid grid-cols-2 gap-8 flex-1 overflow-hidden">
             {/* ACROSS Column */}
             <div className="flex flex-col overflow-hidden">
