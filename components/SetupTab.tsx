@@ -489,17 +489,17 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       
-      // Calculate cell dimensions (assuming 15x15 grid)
-      const cellWidth = canvas.width / 15;
-      const cellHeight = canvas.height / 15;
+      // Calculate cell dimensions based on current grid size
+      const cellWidth = canvas.width / GRID_SIZE;
+      const cellHeight = canvas.height / GRID_SIZE;
       
       // Analyze each cell
       const pattern: number[][] = [];
       
-      for (let row = 0; row < 15; row++) {
+      for (let row = 0; row < GRID_SIZE; row++) {
         const rowPattern: number[] = [];
         
-        for (let col = 0; col < 15; col++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
           // Sample the center of the cell
           const centerX = Math.floor((col + 0.5) * cellWidth);
           const centerY = Math.floor((row + 0.5) * cellHeight);

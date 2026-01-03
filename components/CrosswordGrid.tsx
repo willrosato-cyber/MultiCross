@@ -769,6 +769,24 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     }
   };
 
+  const toggleDirection = () => {
+    const newDirection = direction === 'across' ? 'down' : 'across';
+    setDirection(newDirection);
+    
+    // Update the selected clue for the new direction
+    if (selectedCell) {
+      const newClue = findClueForCell(selectedCell.row, selectedCell.col, newDirection);
+      if (newClue) {
+        setSelectedClue(newClue);
+      }
+      
+      // Sync to Convex
+      if (gameId && playerId) {
+        updateSelection({ gameId, playerId, selectedCell, direction: newDirection });
+      }
+    }
+  };
+
   const handleClear = () => {
     setGridValues(Array(GRID_SIZE).fill('').map(() => Array(GRID_SIZE).fill('')));
   };
@@ -1052,7 +1070,11 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 const isShortClue = selectedClue.text.length < 40;
                 return (
                   // All clues: left-aligned, short clues centered vertically
-                  <div className={`flex-1 flex items-start ${isShortClue ? 'items-center' : ''} min-w-0`}>
+                  // Tap to toggle across/down
+                  <div 
+                    onClick={toggleDirection}
+                    className={`flex-1 flex items-start ${isShortClue ? 'items-center' : ''} min-w-0 cursor-pointer active:bg-blue-200 rounded px-1`}
+                  >
                     <span className={`${isShortClue ? 'text-base' : 'text-sm'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
                   </div>
                 );
