@@ -11,14 +11,14 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
   const bottomRow = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
   return (
-    <div className="w-full h-full bg-white flex flex-col justify-center gap-2 px-1 py-2">
+    <div className="w-full h-full bg-white flex flex-col justify-center gap-2 px-2 py-3">
       {/* Row 1: Q-P */}
       <div className="flex gap-[6px] justify-center">
         {topRow.map((key) => (
           <button
             key={key}
             onClick={() => onKeyPress(key)}
-            className="flex-1 h-[42px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            className="flex-1 h-[44px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
           >
             {key}
           </button>
@@ -31,7 +31,7 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
           <button
             key={key}
             onClick={() => onKeyPress(key)}
-            className="flex-1 h-[42px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            className="flex-1 h-[44px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
           >
             {key}
           </button>
@@ -44,14 +44,14 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
           <button
             key={key}
             onClick={() => onKeyPress(key)}
-            className="flex-1 h-[42px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            className="flex-1 h-[44px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
           >
             {key}
           </button>
         ))}
         <button
           onClick={onBackspace}
-          className="h-[42px] w-[88px] bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
+          className="h-[44px] w-[88px] bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
         >
           ⌫
         </button>

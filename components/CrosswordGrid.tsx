@@ -207,8 +207,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       // Fixed heights
       const headerHeight = 40; // page.tsx: hamburger + title
       const toolbarHeight = 32; // timer + players (with padding)
-      const clueHeight = 40;
-      const keyboardHeight = 125; // 3 rows at 40px each + gaps + padding
+      const clueHeight = 50; // Increased from 40px
+      const keyboardHeight = 150; // Increased from 125px
       const totalFixedHeight = headerHeight + toolbarHeight + clueHeight + keyboardHeight;
       
       // Available space for grid
@@ -949,7 +949,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`${isMobile ? 'flex items-center justify-center' : ''}`} style={isMobile ? { marginBottom: '165px' } : {}}>
+        <div className={`${isMobile ? 'flex items-center justify-center' : ''}`} style={isMobile ? { marginBottom: '200px' } : {}}>
           <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
@@ -1035,10 +1035,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       {isMobile ? (
         /* Mobile: Clue banner + keyboard glued together at bottom */
         <div className="fixed bottom-0 left-0 right-0 flex flex-col flex-shrink-0">
-          <div className="bg-blue-100 p-2 h-[40px] flex items-center justify-between gap-2">
+          <div className="bg-blue-100 px-2 py-3 h-[50px] flex items-center justify-between gap-2">
             <button
               onClick={moveToPrevClue}
-              className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 active:bg-gray-200"
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white rounded hover:bg-gray-100 active:bg-gray-200 text-xl"
             >
               ←
             </button>
@@ -1049,23 +1049,23 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 return (
                   // All clues: left-aligned, short clues centered vertically
                   <div className={`flex-1 flex items-start ${isShortClue ? 'items-center' : ''} min-w-0`}>
-                    <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
+                    <span className={`${isShortClue ? 'text-base' : 'text-sm'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
                   </div>
                 );
               })()
             ) : (
-              <div className="flex-1 text-center text-gray-400 text-xs">
+              <div className="flex-1 text-center text-gray-400 text-sm">
                 Select a cell
               </div>
             )}
             <button
               onClick={moveToNextClue}
-              className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 active:bg-gray-200"
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white rounded hover:bg-gray-100 active:bg-gray-200 text-xl"
             >
               →
             </button>
           </div>
-          <div className="h-[125px]">
+          <div className="h-[150px]">
             <MobileKeyboard 
               onKeyPress={handleMobileKeyPress}
               onBackspace={handleMobileBackspace}
