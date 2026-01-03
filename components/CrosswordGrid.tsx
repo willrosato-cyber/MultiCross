@@ -189,11 +189,46 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   }>>([]);
   const [myColor, setMyColor] = useState<string>("#3B82F6"); // Default blue
   const [isHandlingKeypress, setIsHandlingKeypress] = useState(false);
+  const [gridCellSize, setGridCellSize] = useState(18);
   const cellRefs = useRef<(HTMLDivElement | null)[][]>(
     Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null))
   );
   const acrossCluesRef = useRef<HTMLDivElement>(null);
   const downCluesRef = useRef<HTMLDivElement>(null);
+
+  // Calculate optimal grid size on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const calculateGridSize = () => {
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      
+      // Fixed heights
+      const headerHeight = 40; // hamburger + title
+      const toolbarHeight = 28; // timer + players
+      const clueHeight = 40;
+      const keyboardHeight = 130;
+      const totalFixedHeight = headerHeight + toolbarHeight + clueHeight + keyboardHeight;
+      
+      // Available space for grid
+      const availableHeight = vh - totalFixedHeight;
+      const availableWidth = vw - 16; // 8px padding on each side
+      
+      // Calculate max cell size based on constraints
+      const maxCellWidth = Math.floor(availableWidth / gridSize);
+      const maxCellHeight = Math.floor(availableHeight / gridSize);
+      
+      // Use the smaller of the two to maintain square cells and aspect ratio
+      const cellSize = Math.min(maxCellWidth, maxCellHeight);
+      
+      setGridCellSize(cellSize);
+    };
+
+    calculateGridSize();
+    window.addEventListener('resize', calculateGridSize);
+    return () => window.removeEventListener('resize', calculateGridSize);
+  }, [isMobile, gridSize]);
 
   // Sync game state from Convex
   useEffect(() => {
@@ -795,10 +830,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     <div className={`${isMobile ? 'flex flex-col h-screen overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`}>
       
       {/* Left side - Grid */}
-      <div className={`flex flex-col ${isMobile ? 'flex-1 min-h-0' : ''}`}>
+      <div className={`flex flex-col ${isMobile ? '' : ''}`}>
         {/* Toolbar */}
         {!showAnswers && (
-          <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
+          <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0 px-2' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
             {/* Game Code Display */}
             {joinCode && !isMobile && (
               <div className={`flex ${isMobile ? 'flex-col gap-1' : 'items-center justify-between'} bg-blue-50 px-2 md:px-4 py-1 md:py-2 rounded-lg border-2 border-blue-200`}>
@@ -880,7 +915,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`${isMobile ? 'flex-1 overflow-auto flex items-center justify-center' : ''}`}>
+        <div className={`${isMobile ? 'flex items-center justify-center' : ''}`}>
           <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
@@ -898,7 +933,15 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 // Get the first other player's color for the ring (if multiple players, just show one)
                 const otherPlayerColor = otherPlayersHere.length > 0 ? otherPlayersHere[0].color : null;
                 
-                const cellSize = isMobile ? 'w-[18px] h-[18px] text-[10px]' : 'w-10 h-10 text-xl';
+                const cellSize = isMobile 
+                  ? `w-[${gridCellSize}px] h-[${gridCellSize}px]`
+                  : 'w-10 h-10';
+                const fontSize = isMobile
+                  ? `text-[${Math.floor(gridCellSize * 0.6)}px]`
+                  : 'text-xl';
+                const numberSize = isMobile
+                  ? `text-[${Math.floor(gridCellSize * 0.35)}px]`
+                  : 'text-[9px]';
                 
                 return (
                   <div
@@ -910,7 +953,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       cellRefs.current[rowIndex][colIndex] = el;
                     }}
                     className={`
-                      relative ${cellSize} border border-gray-300 flex items-center justify-center
+                      relative border border-gray-300 flex items-center justify-center
                       font-bold cursor-pointer transition-all
                       ${isBlack ? 'bg-black' : ''}
                       ${!isBlack && !isSelected && !isInWord && !otherPlayerColor ? 'bg-white hover:bg-gray-50' : ''}
@@ -918,20 +961,25 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       ${isSelected && !isBlack ? 'ring-4 ring-inset bg-yellow-200 z-10' : ''}
                       ${otherPlayerColor && !isSelected && !isBlack ? 'ring-4 ring-inset z-10' : ''}
                       focus:outline-none
+                      ${cellSize} ${fontSize}
                     `}
-                    style={
-                      isSelected && !isBlack
+                    style={{
+                      ...(isMobile ? { width: `${gridCellSize}px`, height: `${gridCellSize}px` } : {}),
+                      ...(isSelected && !isBlack
                         ? { '--tw-ring-color': myColor } as React.CSSProperties
                         : otherPlayerColor && !isSelected && !isBlack
                         ? { '--tw-ring-color': otherPlayerColor } as React.CSSProperties
-                        : undefined
-                    }
+                        : {})
+                    }}
                     onClick={() => handleCellClick(rowIndex, colIndex)}
                     onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
                     tabIndex={isBlack ? -1 : 0}
                   >
                     {!isBlack && cellNumber && (
-                      <span className={`absolute top-0 left-0.5 ${isMobile ? 'text-[6px]' : 'text-[9px]'} font-normal`}>
+                      <span 
+                        className={`absolute top-0 left-0.5 font-normal`}
+                        style={isMobile ? { fontSize: `${Math.floor(gridCellSize * 0.35)}px` } : { fontSize: '9px' }}
+                      >
                         {cellNumber}
                       </span>
                     )}
