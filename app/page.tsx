@@ -160,20 +160,20 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gray-50">
+    <main className="min-h-screen p-4 md:p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">MultiCross</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">MultiCross</h1>
             <p className="text-gray-600 mt-1">Hi Sara!</p>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-gray-700 font-medium">
+            <span className="text-sm md:text-base text-gray-700 font-medium">
               Logged in as: <span className="text-blue-600">{playerName}</span>
             </span>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+              className="px-3 md:px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition"
             >
               Logout
             </button>
@@ -181,10 +181,10 @@ export default function Home() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('setup')}
-            className={`px-6 py-3 rounded-t-lg font-semibold transition ${
+            className={`px-4 md:px-6 py-3 rounded-t-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
               activeTab === 'setup'
                 ? 'bg-white text-blue-600 border-b-2 border-blue-600'
                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
@@ -194,7 +194,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab('play')}
-            className={`px-6 py-3 rounded-t-lg font-semibold transition ${
+            className={`px-4 md:px-6 py-3 rounded-t-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
               activeTab === 'play'
                 ? 'bg-white text-blue-600 border-b-2 border-blue-600'
                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
@@ -206,7 +206,7 @@ export default function Home() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
           <div style={{ display: activeTab === 'setup' ? 'block' : 'none' }}>
             <SetupTab 
               onComplete={handleSetupComplete} 

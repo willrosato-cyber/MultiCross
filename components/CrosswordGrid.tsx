@@ -7,6 +7,23 @@ import { Id } from "@/convex/_generated/dataModel";
 
 const GRID_SIZE = 15;
 
+// Hook to detect mobile
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
+
 interface Clue {
   number: number;
   text: string;
@@ -150,6 +167,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   const game = useQuery(api.games.getGame, gameId ? { gameId } : "skip");
   const updateCell = useMutation(api.games.updateCell);
   const updateSelection = useMutation(api.games.updateSelection);
+  
+  const isMobile = useIsMobile();
   
   const [gridValues, setGridValues] = useState<string[][]>(
     Array(GRID_SIZE).fill('').map(() => Array(GRID_SIZE).fill(''))
@@ -710,19 +729,19 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   };
 
   return (
-    <div className="flex gap-6 max-w-7xl mx-auto">
+    <div className={`${isMobile ? 'flex flex-col' : 'flex gap-6'} max-w-7xl mx-auto`}>
       {/* Left side - Grid */}
       <div className="flex flex-col">
         {/* Toolbar */}
         {!showAnswers && (
-          <div className="flex flex-col gap-2 mb-4 bg-white p-4 rounded-lg shadow">
+          <div className={`flex flex-col gap-2 mb-4 bg-white p-4 rounded-lg shadow ${isMobile ? 'p-2' : ''}`}>
             {/* Game Code Display */}
             {joinCode && (
-              <div className="flex items-center justify-between bg-blue-50 px-4 py-2 rounded-lg border-2 border-blue-200">
+              <div className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'} bg-blue-50 px-4 py-2 rounded-lg border-2 border-blue-200`}>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-blue-700 font-semibold">GAME CODE:</span>
-                  <span className="text-2xl font-mono font-bold text-blue-900 tracking-wider">{joinCode}</span>
-                  <span className="text-xs text-blue-600">(Share this with friends!)</span>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-blue-700 font-semibold`}>GAME CODE:</span>
+                  <span className={`${isMobile ? 'text-lg' : 'text-2xl'} font-mono font-bold text-blue-900 tracking-wider`}>{joinCode}</span>
+                  {!isMobile && <span className="text-xs text-blue-600">(Share this with friends!)</span>}
                 </div>
                 <button
                   onClick={() => {
@@ -736,7 +755,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       alert(`Game Code: ${joinCode}\n\nPlease copy this code manually.`);
                     }
                   }}
-                  className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+                  className={`${isMobile ? 'text-xs' : 'text-sm'} bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold`}
                 >
                   📋 Copy Code
                 </button>
@@ -744,21 +763,23 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
             )}
             
             {/* Timer and Buttons */}
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-mono font-bold">{formatTime(time)}</div>
-              <div className="flex gap-2">
-                <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Rebus</button>
-                <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Clear</button>
-                <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Reveal</button>
-                <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Check</button>
-                <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>?</button>
-              </div>
+            <div className={`flex items-center ${isMobile ? 'justify-between' : 'justify-between'}`}>
+              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
+              {!isMobile && (
+                <div className="flex gap-2">
+                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Rebus</button>
+                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Clear</button>
+                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Reveal</button>
+                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Check</button>
+                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>?</button>
+                </div>
+              )}
             </div>
             
             {/* Players List */}
             {game && game.players && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600 font-semibold">Active Players:</span>
+              <div className={`flex items-center gap-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                <span className="text-gray-600 font-semibold">Players:</span>
                 {game.players.map((player) => (
                   <div key={player.id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
                     <div
@@ -794,7 +815,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className="inline-block border-2 border-black shadow-lg">
+        <div className="inline-block border-2 border-black shadow-lg overflow-x-auto">
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
               {row.map((cell, colIndex) => {
@@ -811,6 +832,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 // Get the first other player's color for the ring (if multiple players, just show one)
                 const otherPlayerColor = otherPlayersHere.length > 0 ? otherPlayersHere[0].color : null;
                 
+                const cellSize = isMobile ? 'w-6 h-6 text-xs' : 'w-10 h-10 text-xl';
+                
                 return (
                   <div
                     key={`${rowIndex}-${colIndex}`}
@@ -821,8 +844,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       cellRefs.current[rowIndex][colIndex] = el;
                     }}
                     className={`
-                      relative w-10 h-10 border border-gray-300 flex items-center justify-center
-                      text-xl font-bold cursor-pointer transition-all
+                      relative ${cellSize} border border-gray-300 flex items-center justify-center
+                      font-bold cursor-pointer transition-all
                       ${isBlack ? 'bg-black' : ''}
                       ${!isBlack && !isSelected && !isInWord && !otherPlayerColor ? 'bg-white hover:bg-gray-50' : ''}
                       ${isInWord && !isBlack && !isSelected && !otherPlayerColor ? 'bg-blue-200' : ''}
@@ -842,7 +865,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                     tabIndex={isBlack ? -1 : 0}
                   >
                     {!isBlack && cellNumber && (
-                      <span className="absolute top-0 left-0.5 text-[9px] font-normal">
+                      <span className={`absolute top-0 left-0.5 ${isMobile ? 'text-[6px]' : 'text-[9px]'} font-normal`}>
                         {cellNumber}
                       </span>
                     )}
@@ -859,72 +882,139 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         </div>
       </div>
 
-      {/* Right side - Clues in two columns */}
-      <div className="flex-1 bg-white p-6 rounded-lg shadow max-h-[680px] flex flex-col">
-        <div className="grid grid-cols-2 gap-8 flex-1 overflow-hidden">
-          {/* ACROSS Column */}
-          <div className="flex flex-col overflow-hidden">
-            <h2 className="text-xl font-bold mb-3 pb-2 border-b-2 border-black sticky top-0 bg-white z-10">ACROSS</h2>
-            <div className="space-y-2 overflow-y-auto pr-2">
-              {acrossClues.map((clue) => {
-                const isComplete = isWordComplete(clue);
-                return (
-                  <div
-                    key={`across-${clue.number}`}
-                    id={`clue-across-${clue.number}`}
-                    className={`flex gap-2 p-1.5 rounded cursor-pointer transition text-sm ${
-                      selectedClue?.number === clue.number && direction === 'across'
-                        ? 'bg-blue-200'
-                        : isComplete
-                        ? 'text-gray-400'
-                        : 'hover:bg-gray-100'
-                    }`}
-                    onClick={() => {
-                      setSelectedCell({ row: clue.row, col: clue.col });
-                      setSelectedClue(clue);
-                      setDirection('across');
-                    }}
-                  >
-                    <span className={`font-bold min-w-[2rem] shrink-0 ${isComplete ? 'text-gray-400' : ''}`}>{clue.number}</span>
-                    <span className={`leading-tight ${isComplete ? 'line-through' : ''}`}>{clue.text}</span>
-                  </div>
-                );
-              })}
+      {/* Right side - Clues (Desktop: two columns, Mobile: single clue) */}
+      {isMobile ? (
+        /* Mobile: Single clue display */
+        <div className="mt-4 bg-white p-4 rounded-lg shadow">
+          {selectedClue ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-blue-600 uppercase">{direction}</span>
+                <span className="text-xs text-gray-500">
+                  {direction === 'across' ? acrossClues.findIndex(c => c.number === selectedClue.number) + 1 : downClues.findIndex(c => c.number === selectedClue.number) + 1} 
+                  {' of '}
+                  {direction === 'across' ? acrossClues.length : downClues.length}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <span className="font-bold text-lg">{selectedClue.number}</span>
+                <span className="text-sm leading-relaxed">{selectedClue.text}</span>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    const currentList = direction === 'across' ? acrossClues : downClues;
+                    const currentIndex = currentList.findIndex(c => c.number === selectedClue.number);
+                    if (currentIndex > 0) {
+                      const prevClue = currentList[currentIndex - 1];
+                      setSelectedCell({ row: prevClue.row, col: prevClue.col });
+                      setSelectedClue(prevClue);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 rounded text-sm font-semibold disabled:opacity-50"
+                  disabled={
+                    direction === 'across'
+                      ? acrossClues.findIndex(c => c.number === selectedClue.number) === 0
+                      : downClues.findIndex(c => c.number === selectedClue.number) === 0
+                  }
+                >
+                  ← Prev
+                </button>
+                <button
+                  onClick={() => {
+                    const currentList = direction === 'across' ? acrossClues : downClues;
+                    const currentIndex = currentList.findIndex(c => c.number === selectedClue.number);
+                    if (currentIndex < currentList.length - 1) {
+                      const nextClue = currentList[currentIndex + 1];
+                      setSelectedCell({ row: nextClue.row, col: nextClue.col });
+                      setSelectedClue(nextClue);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 rounded text-sm font-semibold disabled:opacity-50"
+                  disabled={
+                    direction === 'across'
+                      ? acrossClues.findIndex(c => c.number === selectedClue.number) === acrossClues.length - 1
+                      : downClues.findIndex(c => c.number === selectedClue.number) === downClues.length - 1
+                  }
+                >
+                  Next →
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center text-gray-400 text-sm py-4">
+              Select a cell to see its clue
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Desktop: Two-column clue list */
+        <div className="flex-1 bg-white p-6 rounded-lg shadow max-h-[680px] flex flex-col">
+          <div className="grid grid-cols-2 gap-8 flex-1 overflow-hidden">
+            {/* ACROSS Column */}
+            <div className="flex flex-col overflow-hidden">
+              <h2 className="text-xl font-bold mb-3 pb-2 border-b-2 border-black sticky top-0 bg-white z-10">ACROSS</h2>
+              <div ref={acrossCluesRef} className="space-y-2 overflow-y-auto pr-2">
+                {acrossClues.map((clue) => {
+                  const isComplete = isWordComplete(clue);
+                  return (
+                    <div
+                      key={`across-${clue.number}`}
+                      id={`clue-across-${clue.number}`}
+                      className={`flex gap-2 p-1.5 rounded cursor-pointer transition text-sm ${
+                        selectedClue?.number === clue.number && direction === 'across'
+                          ? 'bg-blue-200'
+                          : isComplete
+                          ? 'text-gray-400'
+                          : 'hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        setSelectedCell({ row: clue.row, col: clue.col });
+                        setSelectedClue(clue);
+                        setDirection('across');
+                      }}
+                    >
+                      <span className={`font-bold min-w-[2rem] shrink-0 ${isComplete ? 'text-gray-400' : ''}`}>{clue.number}</span>
+                      <span className={`leading-tight ${isComplete ? 'line-through' : ''}`}>{clue.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-          {/* DOWN Column */}
-          <div className="flex flex-col overflow-hidden">
-            <h2 className="text-xl font-bold mb-3 pb-2 border-b-2 border-black sticky top-0 bg-white z-10">DOWN</h2>
-            <div className="space-y-2 overflow-y-auto pr-2">
-              {downClues.map((clue) => {
-                const isComplete = isWordComplete(clue);
-                return (
-                  <div
-                    key={`down-${clue.number}`}
-                    id={`clue-down-${clue.number}`}
-                    className={`flex gap-2 p-1.5 rounded cursor-pointer transition text-sm ${
-                      selectedClue?.number === clue.number && direction === 'down'
-                        ? 'bg-blue-200'
-                        : isComplete
-                        ? 'text-gray-400'
-                        : 'hover:bg-gray-100'
-                    }`}
-                    onClick={() => {
-                      setSelectedCell({ row: clue.row, col: clue.col });
-                      setSelectedClue(clue);
-                      setDirection('down');
-                    }}
-                  >
-                    <span className={`font-bold min-w-[2rem] shrink-0 ${isComplete ? 'text-gray-400' : ''}`}>{clue.number}</span>
-                    <span className={`leading-tight ${isComplete ? 'line-through' : ''}`}>{clue.text}</span>
-                  </div>
-                );
-              })}
+            {/* DOWN Column */}
+            <div className="flex flex-col overflow-hidden">
+              <h2 className="text-xl font-bold mb-3 pb-2 border-b-2 border-black sticky top-0 bg-white z-10">DOWN</h2>
+              <div ref={downCluesRef} className="space-y-2 overflow-y-auto pr-2">
+                {downClues.map((clue) => {
+                  const isComplete = isWordComplete(clue);
+                  return (
+                    <div
+                      key={`down-${clue.number}`}
+                      id={`clue-down-${clue.number}`}
+                      className={`flex gap-2 p-1.5 rounded cursor-pointer transition text-sm ${
+                        selectedClue?.number === clue.number && direction === 'down'
+                          ? 'bg-blue-200'
+                          : isComplete
+                          ? 'text-gray-400'
+                          : 'hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        setSelectedCell({ row: clue.row, col: clue.col });
+                        setSelectedClue(clue);
+                        setDirection('down');
+                      }}
+                    >
+                      <span className={`font-bold min-w-[2rem] shrink-0 ${isComplete ? 'text-gray-400' : ''}`}>{clue.number}</span>
+                      <span className={`leading-tight ${isComplete ? 'line-through' : ''}`}>{clue.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
