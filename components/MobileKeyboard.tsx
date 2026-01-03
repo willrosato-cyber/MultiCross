@@ -11,9 +11,9 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
   const bottomRow = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
   return (
-    <div className="w-full bg-gray-200 p-1">
+    <div className="w-full h-full bg-gray-200 p-1 flex flex-col justify-center gap-1">
       {/* Top Row */}
-      <div className="flex gap-1 mb-1 justify-center">
+      <div className="flex gap-1 justify-center">
         {topRow.map((key) => (
           <button
             key={key}
@@ -26,7 +26,7 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
       </div>
 
       {/* Middle Row */}
-      <div className="flex gap-1 mb-1 justify-center">
+      <div className="flex gap-1 justify-center">
         {middleRow.map((key) => (
           <button
             key={key}

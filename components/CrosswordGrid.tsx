@@ -795,7 +795,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     <div className={`${isMobile ? 'flex flex-col h-screen overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`}>
       
       {/* Left side - Grid */}
-      <div className={`flex flex-col ${isMobile ? 'flex-shrink-0' : ''}`}>
+      <div className={`flex flex-col ${isMobile ? 'flex-1 min-h-0' : ''}`}>
         {/* Toolbar */}
         {!showAnswers && (
           <div className={`flex flex-col gap-1 ${isMobile ? 'mb-0' : 'mb-2 md:mb-4'} bg-white p-1 md:p-2 rounded-lg shadow`}>
@@ -826,9 +826,26 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               </div>
             )}
             
-            {/* Timer and Buttons */}
-            <div className={`flex items-center ${isMobile ? 'justify-between' : 'justify-between'}`}>
+            {/* Timer and Players - Combined Single Line */}
+            <div className="flex items-center justify-between">
               <div className={`${isMobile ? 'text-sm' : 'text-xl md:text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
+              
+              {/* Players List */}
+              {game && game.players && (
+                <div className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-sm'}`}>
+                  {!isMobile && <span className="text-gray-600 font-semibold">Players:</span>}
+                  {game.players.map((player) => (
+                    <div key={player.id} className={`flex items-center gap-0.5 md:gap-1 bg-gray-100 px-1 md:px-2 py-0.5 md:py-1 rounded`}>
+                      <div
+                        className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`}
+                        style={{ backgroundColor: player.color }}
+                      ></div>
+                      <span className={player.id === playerId ? "font-bold" : ""}>{player.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               {!isMobile && (
                 <div className="flex gap-2">
                   <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Rebus</button>
@@ -839,22 +856,6 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 </div>
               )}
             </div>
-            
-            {/* Players List */}
-            {game && game.players && (
-              <div className={`flex items-center gap-1 md:gap-2 ${isMobile ? 'text-[10px]' : 'text-sm'}`}>
-                {!isMobile && <span className="text-gray-600 font-semibold">Players:</span>}
-                {game.players.map((player) => (
-                  <div key={player.id} className={`flex items-center gap-0.5 md:gap-1 bg-gray-100 px-1 md:px-2 py-0.5 md:py-1 rounded`}>
-                    <div
-                      className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`}
-                      style={{ backgroundColor: player.color }}
-                    ></div>
-                    <span className={player.id === playerId ? "font-bold" : ""}>{player.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
@@ -879,7 +880,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`inline-block border-2 border-black shadow-lg ${isMobile ? 'mx-auto mb-0' : ''}`}>
+        <div className={`${isMobile ? 'flex-1 overflow-auto flex items-center justify-center' : ''}`}>
+          <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
               {row.map((cell, colIndex) => {
@@ -943,36 +945,39 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               })}
             </div>
           ))}
+          </div>
         </div>
       </div>
 
       {/* Right side - Clues (Desktop: two columns, Mobile: single clue + keyboard) */}
       {isMobile ? (
-        /* Mobile: Single clue display + keyboard */
-        <div className="flex flex-col">
-          <div className="bg-blue-100 p-2">
+        /* Mobile: Single clue display + keyboard - Fixed at bottom */
+        <div className="flex flex-col flex-shrink-0">
+          <div className="bg-blue-100 p-2 h-[40px] flex items-center">
             {selectedClue ? (
               (() => {
                 // Check if clue text fits in one line (roughly < 40 characters)
                 const isShortClue = selectedClue.text.length < 40;
                 return (
                   // All clues: left-aligned
-                  <div className="flex gap-1 items-start">
+                  <div className="flex gap-1 items-start w-full">
                     <span className={`font-bold ${isShortClue ? 'text-base' : 'text-sm'} shrink-0`}>{selectedClue.number}.</span>
-                    <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight`}>{selectedClue.text}</span>
+                    <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
                   </div>
                 );
               })()
             ) : (
-              <div className="text-center text-gray-400 text-xs py-1">
+              <div className="text-center text-gray-400 text-xs w-full">
                 Select a cell
               </div>
             )}
           </div>
-          <MobileKeyboard 
-            onKeyPress={handleMobileKeyPress}
-            onBackspace={handleMobileBackspace}
-          />
+          <div className="h-[130px]">
+            <MobileKeyboard 
+              onKeyPress={handleMobileKeyPress}
+              onBackspace={handleMobileBackspace}
+            />
+          </div>
         </div>
       ) : (
         /* Desktop: Two-column clue list */
