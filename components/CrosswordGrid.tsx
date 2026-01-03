@@ -827,7 +827,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   };
 
   return (
-    <div className={`${isMobile ? 'flex flex-col overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`} style={isMobile ? { height: 'calc(100vh - 40px)' } : {}}>
+    <div className={`${isMobile ? 'flex flex-col overflow-hidden' : 'flex gap-6'} max-w-7xl mx-auto`} style={isMobile ? { height: 'calc(100vh - 205px)' } : {}}>
       
       {/* Left side - Grid */}
       <div className={`flex flex-col ${isMobile ? 'flex-1 min-h-0' : ''}`}>
@@ -915,7 +915,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         )}
 
         {/* Grid */}
-        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0 pb-[165px]' : ''}`}>
+        <div className={`${isMobile ? 'flex-1 flex items-center justify-center min-h-0' : ''}`}>
           <div className={`inline-block border-2 border-black shadow-lg`}>
           {pattern.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">

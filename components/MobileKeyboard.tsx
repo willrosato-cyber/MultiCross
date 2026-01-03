@@ -11,53 +11,48 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
   const bottomRow = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
   return (
-    <div className="w-full h-full bg-gray-100 px-1 py-1 flex flex-col justify-center gap-1.5">
+    <div className="w-full h-full bg-gray-200 flex flex-col justify-center gap-1.5 px-1 py-2">
       {/* Row 1: Q-P */}
       <div className="flex gap-1 justify-center">
         {topRow.map((key) => (
           <button
             key={key}
             onClick={() => onKeyPress(key)}
-            className="flex-1 h-10 bg-white rounded shadow-sm active:bg-gray-200 text-lg font-semibold"
-            style={{ maxWidth: '34px' }}
+            className="flex-1 h-10 bg-white rounded shadow-sm active:bg-gray-300 text-lg font-semibold max-w-[34px]"
           >
             {key}
           </button>
         ))}
       </div>
 
-      {/* Row 2: A-L (offset slightly) */}
-      <div className="flex gap-1 justify-center" style={{ paddingLeft: '17px', paddingRight: '17px' }}>
+      {/* Row 2: A-L (offset) */}
+      <div className="flex gap-1 justify-center px-4">
         {middleRow.map((key) => (
           <button
             key={key}
             onClick={() => onKeyPress(key)}
-            className="flex-1 h-10 bg-white rounded shadow-sm active:bg-gray-200 text-lg font-semibold"
-            style={{ maxWidth: '34px' }}
+            className="flex-1 h-10 bg-white rounded shadow-sm active:bg-gray-300 text-lg font-semibold max-w-[34px]"
           >
             {key}
           </button>
         ))}
       </div>
 
-      {/* Row 3: Z-M + Backspace */}
-      <div className="flex gap-1 justify-center items-center">
-        <div className="flex gap-1" style={{ flex: '1', justifyContent: 'center' }}>
-          {bottomRow.map((key) => (
-            <button
-              key={key}
-              onClick={() => onKeyPress(key)}
-              className="h-10 bg-white rounded shadow-sm active:bg-gray-200 text-lg font-semibold"
-              style={{ width: '34px' }}
-            >
-              {key}
-            </button>
-          ))}
-        </div>
+      {/* Row 3: Z-M (centered) + Backspace */}
+      <div className="flex gap-1 justify-center items-center px-1">
+        {bottomRow.map((key) => (
+          <button
+            key={key}
+            onClick={() => onKeyPress(key)}
+            className="flex-1 h-10 bg-white rounded shadow-sm active:bg-gray-300 text-lg font-semibold max-w-[34px]"
+          >
+            {key}
+          </button>
+        ))}
         <button
           onClick={onBackspace}
-          className="h-10 bg-gray-300 text-gray-700 rounded shadow-sm active:bg-gray-400 font-semibold flex items-center justify-center"
-          style={{ width: '60px', fontSize: '20px' }}
+          className="h-10 bg-gray-400 text-white rounded shadow-sm active:bg-gray-500 font-semibold flex items-center justify-center"
+          style={{ width: '68px', fontSize: '18px' }}
         >
           ⌫
         </button>
