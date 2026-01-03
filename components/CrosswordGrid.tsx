@@ -1001,14 +1001,14 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       {isMobile ? (
         /* Mobile: Single clue display + keyboard - Fixed at bottom */
         <div className="flex flex-col flex-shrink-0">
-          <div className="bg-blue-100 p-2 h-[40px] flex items-center">
+          <div className="bg-blue-100 p-2 h-[40px] flex items-center justify-center">
             {selectedClue ? (
               (() => {
                 // Check if clue text fits in one line (roughly < 40 characters)
                 const isShortClue = selectedClue.text.length < 40;
                 return (
-                  // All clues: left-aligned
-                  <div className="flex gap-1 items-start w-full">
+                  // Short clues: centered, Long clues: left-aligned
+                  <div className={`flex gap-1 ${isShortClue ? 'items-center justify-center' : 'items-start'} w-full`}>
                     <span className={`font-bold ${isShortClue ? 'text-base' : 'text-sm'} shrink-0`}>{selectedClue.number}.</span>
                     <span className={`${isShortClue ? 'text-sm' : 'text-[11px]'} leading-tight line-clamp-2`}>{selectedClue.text}</span>
                   </div>
@@ -1020,7 +1020,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               </div>
             )}
           </div>
-          <div className="h-[130px]">
+          <div className="fixed bottom-0 left-0 right-0 h-[130px]">
             <MobileKeyboard 
               onKeyPress={handleMobileKeyPress}
               onBackspace={handleMobileBackspace}
