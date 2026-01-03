@@ -160,7 +160,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8 bg-gray-50">
+    <main className="min-h-screen p-2 md:p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
@@ -208,7 +208,7 @@ export default function Home() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+        <div className="bg-white rounded-lg shadow-lg p-2 md:p-6">
           <div style={{ display: activeTab === 'setup' ? 'block' : 'none' }}>
             <SetupTab 
               onComplete={handleSetupComplete} 

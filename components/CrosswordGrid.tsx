@@ -393,6 +393,9 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   }, [selectedCell, direction, showAnswers, isMobile]);
 
   const scrollToClue = (clue: Clue) => {
+    // Don't auto-scroll on mobile to prevent disruptive jumps while typing
+    if (isMobile) return;
+    
     // Scroll to the clue in the appropriate list
     const clueElement = document.getElementById(`clue-${clue.direction}-${clue.number}`);
     if (clueElement) {
@@ -769,13 +772,13 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       <div className="flex flex-col">
         {/* Toolbar */}
         {!showAnswers && (
-          <div className={`flex flex-col gap-2 mb-4 bg-white p-4 rounded-lg shadow ${isMobile ? 'p-2' : ''}`}>
+          <div className={`flex flex-col gap-2 mb-2 md:mb-4 bg-white p-2 rounded-lg shadow`}>
             {/* Game Code Display */}
             {joinCode && (
-              <div className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'} bg-blue-50 px-4 py-2 rounded-lg border-2 border-blue-200`}>
-                <div className="flex items-center gap-3">
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-blue-700 font-semibold`}>GAME CODE:</span>
-                  <span className={`${isMobile ? 'text-lg' : 'text-2xl'} font-mono font-bold text-blue-900 tracking-wider`}>{joinCode}</span>
+              <div className={`flex ${isMobile ? 'flex-col gap-1' : 'items-center justify-between'} bg-blue-50 px-2 md:px-4 py-1 md:py-2 rounded-lg border-2 border-blue-200`}>
+                <div className="flex items-center gap-2 md:gap-3">
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-blue-700 font-semibold`}>CODE:</span>
+                  <span className={`${isMobile ? 'text-base' : 'text-2xl'} font-mono font-bold text-blue-900 tracking-wider`}>{joinCode}</span>
                   {!isMobile && <span className="text-xs text-blue-600">(Share this with friends!)</span>}
                 </div>
                 <button
@@ -790,9 +793,9 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       alert(`Game Code: ${joinCode}\n\nPlease copy this code manually.`);
                     }
                   }}
-                  className={`${isMobile ? 'text-xs' : 'text-sm'} bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold`}
+                  className={`${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-4 py-2'} bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold`}
                 >
-                  📋 Copy Code
+                  📋 {isMobile ? 'Copy' : 'Copy Code'}
                 </button>
               </div>
             )}
@@ -920,11 +923,11 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       {/* Right side - Clues (Desktop: two columns, Mobile: single clue) */}
       {isMobile ? (
         /* Mobile: Single clue display */
-        <div className="mt-4 bg-white p-4 rounded-lg shadow">
+        <div className="mt-2 bg-white p-2 rounded-lg shadow">
           {selectedClue ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-blue-600 uppercase">{direction}</span>
+                <span className="text-xs font-bold text-blue-600 uppercase">{direction}</span>
                 <span className="text-xs text-gray-500">
                   {direction === 'across' ? acrossClues.findIndex(c => c.number === selectedClue.number) + 1 : downClues.findIndex(c => c.number === selectedClue.number) + 1} 
                   {' of '}
@@ -932,10 +935,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 </span>
               </div>
               <div className="flex gap-2">
-                <span className="font-bold text-lg">{selectedClue.number}</span>
-                <span className="text-sm leading-relaxed">{selectedClue.text}</span>
+                <span className="font-bold text-base">{selectedClue.number}</span>
+                <span className="text-xs leading-tight">{selectedClue.text}</span>
               </div>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-1 mt-1">
                 <button
                   onClick={() => {
                     const currentList = direction === 'across' ? acrossClues : downClues;
@@ -946,7 +949,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       setSelectedClue(prevClue);
                     }
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-200 rounded text-sm font-semibold disabled:opacity-50"
+                  className="flex-1 px-2 py-1 bg-gray-200 rounded text-xs font-semibold disabled:opacity-50"
                   disabled={
                     direction === 'across'
                       ? acrossClues.findIndex(c => c.number === selectedClue.number) === 0
@@ -965,7 +968,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       setSelectedClue(nextClue);
                     }
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-200 rounded text-sm font-semibold disabled:opacity-50"
+                  className="flex-1 px-2 py-1 bg-gray-200 rounded text-xs font-semibold disabled:opacity-50"
                   disabled={
                     direction === 'across'
                       ? acrossClues.findIndex(c => c.number === selectedClue.number) === acrossClues.length - 1
