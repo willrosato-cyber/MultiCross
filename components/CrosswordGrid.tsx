@@ -551,7 +551,11 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       e.preventDefault();
       // If in down mode, toggle to across without moving
       if (direction === 'down') {
-        setDirection('across');
+        const newDirection = 'across';
+        setDirection(newDirection);
+        if (gameId && playerId && selectedCell) {
+          updateSelection({ gameId, playerId, selectedCell, direction: newDirection });
+        }
       } else {
         // If in across mode, move to next cell
         let nextCol = col + 1;

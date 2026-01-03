@@ -38,20 +38,22 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
         ))}
       </div>
 
-      {/* Row 3: Z-M + Backspace */}
-      <div className="flex gap-[6px] justify-center">
-        {bottomRow.map((key) => (
-          <button
-            key={key}
-            onClick={() => onKeyPress(key)}
-            className="flex-1 h-[44px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
-          >
-            {key}
-          </button>
-        ))}
+      {/* Row 3: Z-M (centered) + Backspace */}
+      <div className="flex gap-[6px] justify-center items-center">
+        <div className="flex gap-[6px] justify-center">
+          {bottomRow.map((key) => (
+            <button
+              key={key}
+              onClick={() => onKeyPress(key)}
+              className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            >
+              {key}
+            </button>
+          ))}
+        </div>
         <button
           onClick={onBackspace}
-          className="h-[44px] w-[88px] bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
+          className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
         >
           ⌫
         </button>
