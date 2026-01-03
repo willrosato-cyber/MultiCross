@@ -37,8 +37,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">MultiCross</h1>
-          <p className="text-gray-600">Hi Sara!</p>
+          <h1 className="text-4xl font-bold text-gray-900">MultiCross</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

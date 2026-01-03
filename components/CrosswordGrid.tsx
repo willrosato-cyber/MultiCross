@@ -192,6 +192,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   );
   const acrossCluesRef = useRef<HTMLDivElement>(null);
   const downCluesRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync game state from Convex
   useEffect(() => {
@@ -350,6 +351,11 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       }
     }
     
+    // Focus mobile input to show keyboard
+    if (isMobile && mobileInputRef.current) {
+      mobileInputRef.current.focus();
+    }
+    
     // Find and update the clue for this cell
     const clue = findClueForCell(row, col, direction);
     if (clue) setSelectedClue(clue);
@@ -372,15 +378,19 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
         }
       }
       
-      // Focus the cell div so it receives keyboard events
+      // Focus the appropriate input (mobile or desktop)
       if (!showAnswers) {
-        const cellRef = cellRefs.current[selectedCell.row]?.[selectedCell.col];
-        if (cellRef) {
-          cellRef.focus();
+        if (isMobile && mobileInputRef.current) {
+          mobileInputRef.current.focus();
+        } else {
+          const cellRef = cellRefs.current[selectedCell.row]?.[selectedCell.col];
+          if (cellRef) {
+            cellRef.focus();
+          }
         }
       }
     }
-  }, [selectedCell, direction, showAnswers]);
+  }, [selectedCell, direction, showAnswers, isMobile]);
 
   const scrollToClue = (clue: Clue) => {
     // Scroll to the clue in the appropriate list
@@ -729,7 +739,32 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   };
 
   return (
-    <div className={`${isMobile ? 'flex flex-col' : 'flex gap-6'} max-w-7xl mx-auto`}>
+    <div className={`${isMobile ? 'flex flex-col' : 'flex gap-6'} max-w-7xl mx-auto relative`}>
+      {/* Hidden input for mobile keyboard */}
+      {isMobile && (
+        <input
+          ref={mobileInputRef}
+          type="text"
+          inputMode="text"
+          autoCapitalize="characters"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
+          className="absolute opacity-0 pointer-events-none"
+          style={{ position: 'absolute', left: '-9999px' }}
+          onKeyDown={(e) => {
+            if (selectedCell) {
+              handleKeyDown(e as any, selectedCell.row, selectedCell.col);
+            }
+          }}
+          onInput={(e) => {
+            // Clear the input after each character
+            const input = e.target as HTMLInputElement;
+            input.value = '';
+          }}
+        />
+      )}
+      
       {/* Left side - Grid */}
       <div className="flex flex-col">
         {/* Toolbar */}

@@ -661,24 +661,24 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-3xl font-bold">Setup Crossword</h2>
-        <button onClick={() => { if (confirm("Reset all setup data?")) { setPatternText(Array(gridSize).fill("1".repeat(gridSize)).join("\n")); setUploadedImage(null); setSavedPattern(null); setClueNumbers([]); setCropCoords({ x: 42, y: 6, width: 54, height: 42 }); setIsCropping(false); setCroppedPreview(null); setCluesText(""); } }} className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">Reset</button>
+    <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <h2 className="text-2xl md:text-3xl font-bold">Setup Crossword</h2>
+        <button onClick={() => { if (confirm("Reset all setup data?")) { setPatternText(Array(gridSize).fill("1".repeat(gridSize)).join("\n")); setUploadedImage(null); setSavedPattern(null); setClueNumbers([]); setCropCoords({ x: 42, y: 6, width: 54, height: 42 }); setIsCropping(false); setCroppedPreview(null); setCluesText(""); } }} className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm">Reset</button>
       </div>
 
       {/* Join Game Section */}
-      <div className="bg-blue-50 p-6 rounded-lg shadow mb-6">
-        <h3 className="text-xl font-semibold mb-3 text-blue-900">Join Existing Game</h3>
-        <p className="text-sm text-blue-700 mb-3">Have a game code? Enter it below to join your friend's puzzle!</p>
-        <div className="flex gap-2">
+      <div className="bg-blue-50 p-4 md:p-6 rounded-lg shadow mb-6">
+        <h3 className="text-lg md:text-xl font-semibold mb-3 text-blue-900">Join Existing Game</h3>
+        <p className="text-xs md:text-sm text-blue-700 mb-3">Have a game code? Enter it below to join your friend's puzzle!</p>
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             value={joinCodeInput}
             onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
             placeholder="Enter 6-digit code (e.g. ABC123)"
             maxLength={6}
-            className="flex-1 px-4 py-2 border-2 border-blue-300 rounded-lg font-mono text-lg uppercase focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-4 py-2 border-2 border-blue-300 rounded-lg font-mono text-base md:text-lg uppercase focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             onClick={() => {
@@ -689,27 +689,27 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
               }
             }}
             disabled={joinCodeInput.length !== 6}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap text-sm md:text-base"
           >
             Join Game
           </button>
         </div>
       </div>
 
-      <div className="text-center my-6 text-gray-500 font-semibold">
+      <div className="text-center my-6 text-gray-500 font-semibold text-sm md:text-base">
         — OR CREATE A NEW PUZZLE —
       </div>
 
-      <div className="flex gap-3 mb-6">
-        <button onClick={() => onGridSizeChange(15)} className={`px-6 py-2 rounded-lg font-semibold transition ${gridSize === 15 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>Monday-Saturday (15×15)</button>
-        <button onClick={() => onGridSizeChange(21)} className={`px-6 py-2 rounded-lg font-semibold transition ${gridSize === 21 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>Sunday (21×21)</button>
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <button onClick={() => onGridSizeChange(15)} className={`px-4 md:px-6 py-2 rounded-lg font-semibold transition text-sm md:text-base ${gridSize === 15 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>Monday-Saturday (15×15)</button>
+        <button onClick={() => onGridSizeChange(21)} className={`px-4 md:px-6 py-2 rounded-lg font-semibold transition text-sm md:text-base ${gridSize === 21 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>Sunday (21×21)</button>
       </div>
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-8">
         {/* Left Column - Upload & Input */}
         <div className="space-y-6 xl:col-span-1">
           {/* Image Upload */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-4">1. Upload Reference Image</h3>
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+            <h3 className="text-lg md:text-xl font-semibold mb-4">1. Upload Reference Image</h3>
             <input
               type="file"
               accept="image/*"

@@ -165,7 +165,9 @@ export default function Home() {
         <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">MultiCross</h1>
-            <p className="text-gray-600 mt-1">Hi Sara!</p>
+            <p className="text-gray-600 mt-1">
+              {playerName === 'saran' ? 'Hi Sara!' : playerName === 'billy' ? 'Play like a champion today' : 'Welcome!'}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm md:text-base text-gray-700 font-medium">
