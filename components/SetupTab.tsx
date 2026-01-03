@@ -23,13 +23,21 @@ interface SetupTabProps {
 export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChange, onJoinGame }: SetupTabProps) {
   const GRID_SIZE = gridSize;
   
+  // Default crop coordinates based on grid size
+  const getDefaultCropCoords = () => {
+    if (gridSize === 21) {
+      return { x: 47, y: 6, width: 50, height: 39 }; // Sunday (21x21) defaults
+    }
+    return { x: 42, y: 6, width: 54, height: 42 }; // Mon-Sat (15x15) defaults
+  };
+  
   const [patternText, setPatternText] = useState<string>(
     Array(gridSize).fill('1'.repeat(gridSize)).join('\n')
   );
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [savedPattern, setSavedPattern] = useState<number[][] | null>(null);
   const [clueNumbers, setClueNumbers] = useState<number[][]>([]);
-  const [cropCoords, setCropCoords] = useState({ x: 42, y: 6, width: 54, height: 42 });
+  const [cropCoords, setCropCoords] = useState(getDefaultCropCoords());
   const [isCropping, setIsCropping] = useState(false);
   const [imageZoom, setImageZoom] = useState(100);
   const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
@@ -56,24 +64,30 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
   const handleSetCropArea = () => {
     if (!imageRef.current) return;
     
-    // Default crop based on user's preferred settings
+    // Default crop based on grid size
     const img = imageRef.current;
     const imgWidth = img.naturalWidth;
     const imgHeight = img.naturalHeight;
     
-    // User's preferred crop area: X 42%, Y 6%, Width 54%, Height 42%
+    // Use different crop defaults based on grid size
+    const defaults = getDefaultCropCoords();
+    const xPercent = defaults.x / 100;
+    const yPercent = defaults.y / 100;
+    const widthPercent = defaults.width / 100;
+    const heightPercent = defaults.height / 100;
+    
     setCropCoords({
-      x: Math.floor(imgWidth * 0.42),
-      y: Math.floor(imgHeight * 0.06),
-      width: Math.floor(imgWidth * 0.54),
-      height: Math.floor(imgHeight * 0.42),
+      x: Math.floor(imgWidth * xPercent),
+      y: Math.floor(imgHeight * yPercent),
+      width: Math.floor(imgWidth * widthPercent),
+      height: Math.floor(imgHeight * heightPercent),
     });
     setIsCropping(true);
     updateCroppedPreview(
-      Math.floor(imgWidth * 0.42),
-      Math.floor(imgHeight * 0.06),
-      Math.floor(imgWidth * 0.54),
-      Math.floor(imgHeight * 0.42)
+      Math.floor(imgWidth * xPercent),
+      Math.floor(imgHeight * yPercent),
+      Math.floor(imgWidth * widthPercent),
+      Math.floor(imgHeight * heightPercent)
     );
   };
 
@@ -664,7 +678,7 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
     <div className="max-w-7xl mx-auto p-2 md:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <h2 className="text-2xl md:text-3xl font-bold">Setup Crossword</h2>
-        <button onClick={() => { if (confirm("Reset all setup data?")) { setPatternText(Array(gridSize).fill("1".repeat(gridSize)).join("\n")); setUploadedImage(null); setSavedPattern(null); setClueNumbers([]); setCropCoords({ x: 42, y: 6, width: 54, height: 42 }); setIsCropping(false); setCroppedPreview(null); setCluesText(""); } }} className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm">Reset</button>
+        <button onClick={() => { if (confirm("Reset all setup data?")) { setPatternText(Array(gridSize).fill("1".repeat(gridSize)).join("\n")); setUploadedImage(null); setSavedPattern(null); setClueNumbers([]); setCropCoords(getDefaultCropCoords()); setIsCropping(false); setCroppedPreview(null); setCluesText(""); } }} className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm">Reset</button>
       </div>
 
       {/* Join Game Section */}
