@@ -9,7 +9,13 @@ interface AccountTabProps {
 }
 
 export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
-  const userGames = useQuery(api.users.getUserGames, { username });
+  // Safely query user games (may not exist in older deployments)
+  let userGames;
+  try {
+    userGames = useQuery(api.users?.getUserGames, api.users?.getUserGames ? { username } : "skip");
+  } catch {
+    userGames = undefined;
+  }
 
   const formatDate = (timestamp?: number) => {
     if (!timestamp) return 'N/A';

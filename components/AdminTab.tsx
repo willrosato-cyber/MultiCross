@@ -4,8 +4,15 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 export default function AdminTab() {
-  const users = useQuery(api.users.getAllUsers);
-  const activityLog = useQuery(api.users.getActivityLog);
+  // Safely query admin data (may not exist in older deployments)
+  let users, activityLog;
+  try {
+    users = useQuery(api.users?.getAllUsers, api.users?.getAllUsers ? {} : "skip");
+    activityLog = useQuery(api.users?.getActivityLog, api.users?.getActivityLog ? {} : "skip");
+  } catch {
+    users = undefined;
+    activityLog = undefined;
+  }
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp);

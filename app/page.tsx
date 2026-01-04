@@ -34,9 +34,11 @@ export default function Home() {
   
   const createGame = useMutation(api.games.createGame);
   const joinGame = useMutation(api.games.joinGame);
-  const logActivity = useMutation(api.users.logActivity);
-  const initializeUsers = useMutation(api.users.initializeUsers);
   const gameData = useQuery(api.games.getGame, gameId ? { gameId } : "skip");
+  
+  // Optional mutations for new features (may not exist in older deployments)
+  const logActivity = useMutation(api.users?.logActivity || null as any);
+  const initializeUsers = useMutation(api.users?.initializeUsers || null as any);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -50,7 +52,9 @@ export default function Home() {
 
   // Initialize users in database on first load
   useEffect(() => {
-    initializeUsers().catch(console.error);
+    if (initializeUsers) {
+      initializeUsers().catch(console.error);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -81,11 +85,13 @@ export default function Home() {
     localStorage.setItem('username', username);
     setIsAuthenticated(true);
     setPlayerName(username);
-    // Log the login activity
-    logActivity({
-      username,
-      action: 'login',
-    }).catch(console.error);
+    // Log the login activity (if available)
+    if (logActivity) {
+      logActivity({
+        username,
+        action: 'login',
+      }).catch(console.error);
+    }
   };
 
   const handleLogout = () => {
@@ -137,12 +143,14 @@ export default function Home() {
       if (result && result.joinCode) {
         setJoinCode(result.joinCode);
         console.log("✅ Set joinCode:", result.joinCode);
-        // Log game creation activity
-        logActivity({
-          username: playerName,
-          action: 'game_created',
-          joinCode: result.joinCode,
-        }).catch(console.error);
+        // Log game creation activity (if available)
+        if (logActivity) {
+          logActivity({
+            username: playerName,
+            action: 'game_created',
+            joinCode: result.joinCode,
+          }).catch(console.error);
+        }
       } else {
         console.error("❌ No joinCode in result!");
       }
@@ -163,12 +171,14 @@ export default function Home() {
       console.log("✅ Joined! Game ID:", gameIdResult);
       setGameId(gameIdResult);
       setJoinCode(code.toUpperCase());
-      // Log game joined activity
-      logActivity({
-        username: playerName,
-        action: 'game_joined',
-        joinCode: code.toUpperCase(),
-      }).catch(console.error);
+      // Log game joined activity (if available)
+      if (logActivity) {
+        logActivity({
+          username: playerName,
+          action: 'game_joined',
+          joinCode: code.toUpperCase(),
+        }).catch(console.error);
+      }
       // Game data will be fetched automatically via useQuery
       alert(`Joined game ${code}!`);
       setActiveTab('play');
