@@ -1,9 +1,13 @@
 'use client';
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useState } from "react";
 
 export default function AdminTab() {
+  const [migrationResult, setMigrationResult] = useState<any>(null);
+  const [isMigrating, setIsMigrating] = useState(false);
+  
   // Safely query admin data (may not exist in older deployments)
   let users, activityLog;
   try {
@@ -13,6 +17,31 @@ export default function AdminTab() {
     users = undefined;
     activityLog = undefined;
   }
+
+  const migrateUsernames = useMutation(api.migrateUsernames?.migrateUsernames || null as any);
+
+  const handleMigration = async () => {
+    if (!migrateUsernames) {
+      alert("Migration function not available");
+      return;
+    }
+    
+    if (!confirm("This will update all 'billy' → 'will' and 'saran' → 'sara' in games and logs. Continue?")) {
+      return;
+    }
+    
+    setIsMigrating(true);
+    try {
+      const result = await migrateUsernames({});
+      setMigrationResult(result);
+      alert(`Migration complete!\nGames updated: ${result.gamesUpdated}\nPlayers updated: ${result.playersUpdated}\nActivity logs updated: ${result.activityLogsUpdated}`);
+    } catch (error) {
+      console.error("Migration error:", error);
+      alert("Migration failed. Check console for details.");
+    } finally {
+      setIsMigrating(false);
+    }
+  };
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -37,6 +66,33 @@ export default function AdminTab() {
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2 text-red-600">🔒 Admin Dashboard</h2>
         <p className="text-gray-600">For authorized personnel only</p>
+      </div>
+
+      {/* Migration Tool */}
+      <div className="mb-8 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
+        <h3 className="text-xl font-bold mb-3 text-yellow-800">⚙️ Data Migration</h3>
+        <p className="text-sm text-gray-700 mb-4">
+          Fix old usernames in games and activity logs (billy → will, saran → sara)
+        </p>
+        <button
+          onClick={handleMigration}
+          disabled={isMigrating}
+          className={`px-6 py-2 rounded-lg font-semibold transition ${
+            isMigrating
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-yellow-600 text-white hover:bg-yellow-700'
+          }`}
+        >
+          {isMigrating ? 'Migrating...' : '🔄 Run Username Migration'}
+        </button>
+        {migrationResult && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-semibold text-green-800">✅ Migration Complete!</p>
+            <p className="text-sm text-gray-700">Games updated: {migrationResult.gamesUpdated}</p>
+            <p className="text-sm text-gray-700">Players updated: {migrationResult.playersUpdated}</p>
+            <p className="text-sm text-gray-700">Activity logs updated: {migrationResult.activityLogsUpdated}</p>
+          </div>
+        )}
       </div>
 
       {/* Users Section */}
