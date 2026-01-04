@@ -204,7 +204,7 @@ export default function Home() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  const subtitle = playerName === 'saran' ? 'Hi Sara!' : playerName === 'billy' ? 'Play like a champion today' : 'Welcome!';
+  const subtitle = playerName === 'sara' ? 'Hi Sara!' : playerName === 'will' ? 'Play like a champion today' : 'Welcome!';
 
   return (
     <main className="min-h-screen p-0 md:p-8 bg-gray-50">
@@ -277,7 +277,7 @@ export default function Home() {
           >
             Open Games
           </button>
-          {playerName === 'billy' && (
+          {playerName === 'will' && (
             <button
               onClick={() => setActiveTab('admin')}
               className={`px-4 md:px-6 py-3 rounded-t-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
@@ -344,7 +344,7 @@ export default function Home() {
             <AccountTab username={playerName} onJoinGame={handleJoinGame} />
           </div>
 
-          {playerName === 'billy' && (
+          {playerName === 'will' && (
             <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
               <AdminTab />
             </div>

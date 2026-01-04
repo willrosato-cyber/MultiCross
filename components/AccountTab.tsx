@@ -66,7 +66,7 @@ export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {userGames.map((game) => {
             const isCreator = game.createdBy === username;
-            const isAdmin = username.toLowerCase() === 'billy';
+            const isAdmin = username.toLowerCase() === 'will';
             const canDelete = isCreator || isAdmin;
             const playerCount = game.players?.length || 0;
             

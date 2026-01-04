@@ -128,7 +128,7 @@ export default function HamburgerMenu({
             >
               Open Games
             </button>
-            {playerName === 'billy' && (
+            {playerName === 'will' && (
               <button
                 onClick={() => {
                   onTabChange('admin');

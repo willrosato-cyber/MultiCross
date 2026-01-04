@@ -5,28 +5,54 @@ import { mutation, query } from "./_generated/server";
 export const initializeUsers = mutation({
   args: {},
   handler: async (ctx) => {
-    const existingBilly = await ctx.db
+    const existingWill = await ctx.db
       .query("users")
-      .withIndex("by_username", (q) => q.eq("username", "billy"))
+      .withIndex("by_username", (q) => q.eq("username", "will"))
       .first();
     
-    if (!existingBilly) {
+    if (!existingWill) {
       await ctx.db.insert("users", {
-        username: "billy",
+        username: "will",
         password: "07312025",
         createdAt: Date.now(),
       });
     }
 
-    const existingSaran = await ctx.db
+    const existingSara = await ctx.db
       .query("users")
-      .withIndex("by_username", (q) => q.eq("username", "saran"))
+      .withIndex("by_username", (q) => q.eq("username", "sara"))
       .first();
     
-    if (!existingSaran) {
+    if (!existingSara) {
       await ctx.db.insert("users", {
-        username: "saran",
+        username: "sara",
         password: "07312025",
+        createdAt: Date.now(),
+      });
+    }
+
+    const existingHannah = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", "hannah"))
+      .first();
+    
+    if (!existingHannah) {
+      await ctx.db.insert("users", {
+        username: "hannah",
+        password: "tenafly",
+        createdAt: Date.now(),
+      });
+    }
+
+    const existingJustin = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", "justin"))
+      .first();
+    
+    if (!existingJustin) {
+      await ctx.db.insert("users", {
+        username: "justin",
+        password: "patek",
         createdAt: Date.now(),
       });
     }
