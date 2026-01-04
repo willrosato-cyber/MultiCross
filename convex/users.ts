@@ -121,3 +121,35 @@ export const getUserGames = query({
   },
 });
 
+// Delete a user account (admin only)
+export const deleteUser = mutation({
+  args: {
+    username: v.string(),
+    adminUsername: v.string(),
+  },
+  handler: async (ctx, { username, adminUsername }) => {
+    // Only admin can delete users
+    if (adminUsername.toLowerCase() !== "will") {
+      throw new Error("Admin only");
+    }
+    
+    // Don't allow deleting the admin account
+    if (username.toLowerCase() === "will") {
+      throw new Error("Cannot delete admin account");
+    }
+    
+    // Find and delete the user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", username))
+      .first();
+    
+    if (user) {
+      await ctx.db.delete(user._id);
+      return { success: true, username };
+    }
+    
+    throw new Error("User not found");
+  },
+});
+

@@ -5,9 +5,10 @@ import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 
 export default function AdminTab() {
-  const [migrationResult, setMigrationResult] = useState<any>(null);
-  const [isMigrating, setIsMigrating] = useState(false);
   const [isInvalidating, setIsInvalidating] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string>('all');
+  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [selectedAction, setSelectedAction] = useState<string>('all');
   
   // Safely query admin data (may not exist in older deployments)
   let users, activityLog;
@@ -19,31 +20,7 @@ export default function AdminTab() {
     activityLog = undefined;
   }
 
-  const migrateUsernames = useMutation(api.migrateUsernames?.migrateUsernames || null as any);
   const invalidateAllSessions = useMutation(api.auth?.invalidateAllSessions || null as any);
-
-  const handleMigration = async () => {
-    if (!migrateUsernames) {
-      alert("Migration function not available");
-      return;
-    }
-    
-    if (!confirm("This will update all 'billy' → 'will' and 'saran' → 'sara' in games and logs. Continue?")) {
-      return;
-    }
-    
-    setIsMigrating(true);
-    try {
-      const result = await migrateUsernames({});
-      setMigrationResult(result);
-      alert(`Migration complete!\nGames updated: ${result.gamesUpdated}\nPlayers updated: ${result.playersUpdated}\nActivity logs updated: ${result.activityLogsUpdated}`);
-    } catch (error) {
-      console.error("Migration error:", error);
-      alert("Migration failed. Check console for details.");
-    } finally {
-      setIsMigrating(false);
-    }
-  };
 
   const handleInvalidateAllSessions = async () => {
     if (!invalidateAllSessions) {
@@ -93,6 +70,27 @@ export default function AdminTab() {
     }
   };
 
+  // Get unique users and days for filters
+  const uniqueUsers = activityLog 
+    ? Array.from(new Set(activityLog.map((log: any) => log.username))).sort()
+    : [];
+  
+  const uniqueDays = activityLog
+    ? Array.from(new Set(activityLog.map((log: any) => {
+        const date = new Date(log.timestamp);
+        return date.toLocaleDateString();
+      }))).sort().reverse()
+    : [];
+
+  // Filter activity log
+  const filteredActivityLog = activityLog?.filter((log: any) => {
+    const logDay = new Date(log.timestamp).toLocaleDateString();
+    const dayMatch = selectedDay === 'all' || logDay === selectedDay;
+    const userMatch = selectedUser === 'all' || log.username === selectedUser;
+    const actionMatch = selectedAction === 'all' || log.action === selectedAction;
+    return dayMatch && userMatch && actionMatch;
+  }) || [];
+
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8">
       <div className="mb-8">
@@ -100,57 +98,28 @@ export default function AdminTab() {
         <p className="text-gray-600">For authorized personnel only</p>
       </div>
 
-      {/* Migration Tools */}
-      <div className="mb-8 space-y-4">
-        {/* Username Migration */}
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-3 text-yellow-800">⚙️ Username Migration</h3>
-          <p className="text-sm text-gray-700 mb-4">
-            Fix old usernames in games and activity logs (billy → will, saran → sara)
-          </p>
-          <button
-            onClick={handleMigration}
-            disabled={isMigrating}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              isMigrating
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-yellow-600 text-white hover:bg-yellow-700'
-            }`}
-          >
-            {isMigrating ? 'Migrating...' : '🔄 Run Username Migration'}
-          </button>
-          {migrationResult && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-              <p className="font-semibold text-green-800">✅ Migration Complete!</p>
-              <p className="text-sm text-gray-700">Games updated: {migrationResult.gamesUpdated}</p>
-              <p className="text-sm text-gray-700">Players updated: {migrationResult.playersUpdated}</p>
-              <p className="text-sm text-gray-700">Activity logs updated: {migrationResult.activityLogsUpdated}</p>
+      {/* Force Logout Tool */}
+      <div className="mb-8">
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Force Logout All Users</h3>
+              <p className="text-sm text-gray-600">
+                Invalidate all current sessions. All users will be logged out on their next page refresh.
+              </p>
             </div>
-          )}
-        </div>
-
-        {/* Session Invalidation */}
-        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-3 text-red-800">🚪 Force Logout All Users</h3>
-          <p className="text-sm text-gray-700 mb-4">
-            <strong>One-time cleanup:</strong> Force everyone to re-login with their own credentials.
-            <br />
-            <span className="text-red-600 font-semibold">⚠️ Use this only once after dogfooding phase!</span>
-          </p>
-          <button
-            onClick={handleInvalidateAllSessions}
-            disabled={isInvalidating}
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              isInvalidating
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-red-600 text-white hover:bg-red-700'
-            }`}
-          >
-            {isInvalidating ? 'Invalidating...' : '🚪 Logout All Users'}
-          </button>
-          <p className="text-xs text-gray-600 mt-3">
-            All users (including you) will be logged out on next page refresh.
-          </p>
+            <button
+              onClick={handleInvalidateAllSessions}
+              disabled={isInvalidating}
+              className={`ml-4 px-5 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+                isInvalidating
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-red-600 text-white hover:bg-red-700'
+              }`}
+            >
+              🚪 {isInvalidating ? 'Logging out...' : 'Logout All'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -199,12 +168,63 @@ export default function AdminTab() {
       <div>
         <h3 className="text-2xl font-bold mb-4">📊 Activity Log</h3>
         <p className="text-sm text-gray-600 mb-4">Last 100 activities</p>
+        
+        {/* Filters */}
+        <div className="mb-4 flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Day</label>
+            <select
+              value={selectedDay}
+              onChange={(e) => setSelectedDay(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Days</option>
+              {uniqueDays.map((day) => (
+                <option key={day} value={day}>{day}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by User</label>
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Users</option>
+              {uniqueUsers.map((user) => (
+                <option key={user} value={user}>{user}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Action</label>
+            <select
+              value={selectedAction}
+              onChange={(e) => setSelectedAction(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Actions</option>
+              <option value="login">🔐 Login</option>
+              <option value="game_created">🎮 Created Game</option>
+              <option value="game_joined">👥 Joined Game</option>
+            </select>
+          </div>
+        </div>
+        
         {!activityLog ? (
           <p className="text-gray-500">Loading activity log...</p>
-        ) : activityLog.length === 0 ? (
-          <p className="text-gray-500">No activity yet.</p>
+        ) : filteredActivityLog.length === 0 ? (
+          <p className="text-gray-500">No activities match your filters.</p>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
+              <p className="text-sm text-gray-600">
+                Showing {filteredActivityLog.length} of {activityLog.length} activities
+              </p>
+            </div>
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -223,7 +243,7 @@ export default function AdminTab() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {activityLog.map((log) => (
+                {filteredActivityLog.map((log) => (
                   <tr key={log._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatTimestamp(log.timestamp)}
