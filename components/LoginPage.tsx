@@ -12,6 +12,8 @@ const VALID_USERS = {
   sara: '07312025',
   hannah: 'tenafly',
   justin: 'patek',
+  david: 'serra',
+  brett: 'itsover',
 };
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
@@ -95,7 +97,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center">
-            Valid users: will, sara, hannah, justin
+            Valid users: will, sara, hannah, justin, david, brett
           </p>
         </div>
       </div>

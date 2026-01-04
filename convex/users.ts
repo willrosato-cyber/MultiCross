@@ -56,6 +56,32 @@ export const initializeUsers = mutation({
         createdAt: Date.now(),
       });
     }
+
+    const existingDavid = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", "david"))
+      .first();
+    
+    if (!existingDavid) {
+      await ctx.db.insert("users", {
+        username: "david",
+        password: "serra",
+        createdAt: Date.now(),
+      });
+    }
+
+    const existingBrett = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", "brett"))
+      .first();
+    
+    if (!existingBrett) {
+      await ctx.db.insert("users", {
+        username: "brett",
+        password: "itsover",
+        createdAt: Date.now(),
+      });
+    }
   },
 });
 
