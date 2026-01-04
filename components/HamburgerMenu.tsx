@@ -126,7 +126,7 @@ export default function HamburgerMenu({
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Account
+              Open Games
             </button>
             {playerName === 'billy' && (
               <button

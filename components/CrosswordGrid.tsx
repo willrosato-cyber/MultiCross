@@ -778,40 +778,71 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       selectedClue?.number === clue.number
     );
     
-    // Move to next clue (wrap around to beginning if at end)
-    const nextClueIndex = currentClueIndex < clues.length - 1 ? currentClueIndex + 1 : 0;
-    const nextClue = clues[nextClueIndex];
+    // Search for next incomplete clue (with at least one empty cell)
+    let searchIndex = currentClueIndex + 1;
+    let attempts = 0;
+    const maxAttempts = clues.length;
     
-    if (nextClue) {
-      // Find the first empty cell in the next clue
-      let targetRow = nextClue.row;
-      let targetCol = nextClue.col;
+    while (attempts < maxAttempts) {
+      // Wrap around to beginning if at end
+      if (searchIndex >= clues.length) {
+        searchIndex = 0;
+      }
       
-      if (direction === 'across') {
-        // Search for first empty cell in the across word
-        for (let col = nextClue.col; col < GRID_SIZE; col++) {
-          if (isBlackSquare(nextClue.row, col)) break;
-          if (gridValues[nextClue.row][col] === '') {
-            targetCol = col;
-            break;
+      const nextClue = clues[searchIndex];
+      
+      if (nextClue) {
+        // Check if this clue has any empty cells
+        let hasEmptyCell = false;
+        let targetRow = nextClue.row;
+        let targetCol = nextClue.col;
+        
+        if (direction === 'across') {
+          // Search for first empty cell in the across word
+          for (let col = nextClue.col; col < GRID_SIZE; col++) {
+            if (isBlackSquare(nextClue.row, col)) break;
+            if (gridValues[nextClue.row][col] === '') {
+              targetCol = col;
+              hasEmptyCell = true;
+              break;
+            }
+          }
+        } else {
+          // Search for first empty cell in the down word
+          for (let row = nextClue.row; row < GRID_SIZE; row++) {
+            if (isBlackSquare(row, nextClue.col)) break;
+            if (gridValues[row][nextClue.col] === '') {
+              targetRow = row;
+              hasEmptyCell = true;
+              break;
+            }
           }
         }
-      } else {
-        // Search for first empty cell in the down word
-        for (let row = nextClue.row; row < GRID_SIZE; row++) {
-          if (isBlackSquare(row, nextClue.col)) break;
-          if (gridValues[row][nextClue.col] === '') {
-            targetRow = row;
-            break;
+        
+        // If this clue has an empty cell, select it
+        if (hasEmptyCell) {
+          setSelectedCell({ row: targetRow, col: targetCol });
+          setSelectedClue(nextClue);
+          // Sync to Convex
+          if (gameId && playerId) {
+            updateSelection({ gameId, playerId, selectedCell: { row: targetRow, col: targetCol }, direction });
           }
+          return;
         }
       }
       
-      setSelectedCell({ row: targetRow, col: targetCol });
-      setSelectedClue(nextClue);
-      // Sync to Convex
+      // This clue is complete, try next one
+      searchIndex++;
+      attempts++;
+    }
+    
+    // All clues are complete! Just go to the first clue
+    const firstClue = clues[0];
+    if (firstClue) {
+      setSelectedCell({ row: firstClue.row, col: firstClue.col });
+      setSelectedClue(firstClue);
       if (gameId && playerId) {
-        updateSelection({ gameId, playerId, selectedCell: { row: targetRow, col: targetCol }, direction });
+        updateSelection({ gameId, playerId, selectedCell: { row: firstClue.row, col: firstClue.col }, direction });
       }
     }
   };
@@ -824,40 +855,71 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
       selectedClue?.number === clue.number
     );
     
-    // Move to previous clue (wrap around to end if at beginning)
-    const prevClueIndex = currentClueIndex > 0 ? currentClueIndex - 1 : clues.length - 1;
-    const prevClue = clues[prevClueIndex];
+    // Search for previous incomplete clue (with at least one empty cell)
+    let searchIndex = currentClueIndex - 1;
+    let attempts = 0;
+    const maxAttempts = clues.length;
     
-    if (prevClue) {
-      // Find the first empty cell in the previous clue
-      let targetRow = prevClue.row;
-      let targetCol = prevClue.col;
+    while (attempts < maxAttempts) {
+      // Wrap around to end if at beginning
+      if (searchIndex < 0) {
+        searchIndex = clues.length - 1;
+      }
       
-      if (direction === 'across') {
-        // Search for first empty cell in the across word
-        for (let col = prevClue.col; col < GRID_SIZE; col++) {
-          if (isBlackSquare(prevClue.row, col)) break;
-          if (gridValues[prevClue.row][col] === '') {
-            targetCol = col;
-            break;
+      const prevClue = clues[searchIndex];
+      
+      if (prevClue) {
+        // Check if this clue has any empty cells
+        let hasEmptyCell = false;
+        let targetRow = prevClue.row;
+        let targetCol = prevClue.col;
+        
+        if (direction === 'across') {
+          // Search for first empty cell in the across word
+          for (let col = prevClue.col; col < GRID_SIZE; col++) {
+            if (isBlackSquare(prevClue.row, col)) break;
+            if (gridValues[prevClue.row][col] === '') {
+              targetCol = col;
+              hasEmptyCell = true;
+              break;
+            }
+          }
+        } else {
+          // Search for first empty cell in the down word
+          for (let row = prevClue.row; row < GRID_SIZE; row++) {
+            if (isBlackSquare(row, prevClue.col)) break;
+            if (gridValues[row][prevClue.col] === '') {
+              targetRow = row;
+              hasEmptyCell = true;
+              break;
+            }
           }
         }
-      } else {
-        // Search for first empty cell in the down word
-        for (let row = prevClue.row; row < GRID_SIZE; row++) {
-          if (isBlackSquare(row, prevClue.col)) break;
-          if (gridValues[row][prevClue.col] === '') {
-            targetRow = row;
-            break;
+        
+        // If this clue has an empty cell, select it
+        if (hasEmptyCell) {
+          setSelectedCell({ row: targetRow, col: targetCol });
+          setSelectedClue(prevClue);
+          // Sync to Convex
+          if (gameId && playerId) {
+            updateSelection({ gameId, playerId, selectedCell: { row: targetRow, col: targetCol }, direction });
           }
+          return;
         }
       }
       
-      setSelectedCell({ row: targetRow, col: targetCol });
-      setSelectedClue(prevClue);
-      // Sync to Convex
+      // This clue is complete, try previous one
+      searchIndex--;
+      attempts++;
+    }
+    
+    // All clues are complete! Just go to the last clue
+    const lastClue = clues[clues.length - 1];
+    if (lastClue) {
+      setSelectedCell({ row: lastClue.row, col: lastClue.col });
+      setSelectedClue(lastClue);
       if (gameId && playerId) {
-        updateSelection({ gameId, playerId, selectedCell: { row: targetRow, col: targetCol }, direction });
+        updateSelection({ gameId, playerId, selectedCell: { row: lastClue.row, col: lastClue.col }, direction });
       }
     }
   };

@@ -1,7 +1,8 @@
 'use client';
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface AccountTabProps {
   username: string;
@@ -17,6 +18,24 @@ export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
     userGames = undefined;
   }
 
+  // Delete game mutation
+  const deleteGameMutation = useMutation(api.games?.deleteGame || null as any);
+
+  const handleDeleteGame = async (gameId: Id<"games">) => {
+    if (!confirm("Are you sure you want to delete this game? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      if (deleteGameMutation) {
+        await deleteGameMutation({ gameId, username });
+        alert("Game deleted successfully!");
+      }
+    } catch (error) {
+      alert("Error deleting game: " + (error as Error).message);
+    }
+  };
+
   const formatDate = (timestamp?: number) => {
     if (!timestamp) return 'N/A';
     const date = new Date(timestamp);
@@ -29,7 +48,7 @@ export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8">
-      <h2 className="text-3xl font-bold mb-6">My Games</h2>
+      <h2 className="text-3xl font-bold mb-6">Open Games</h2>
       <p className="text-gray-600 mb-4">
         Logged in as: <span className="font-bold">{username}</span>
       </p>
@@ -108,6 +127,15 @@ export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
                 >
                   Rejoin Game
                 </button>
+
+                {isCreator && (
+                  <button
+                    onClick={() => handleDeleteGame(game._id)}
+                    className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700 transition mt-2"
+                  >
+                    Delete Game
+                  </button>
+                )}
               </div>
             );
           })}

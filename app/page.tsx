@@ -275,7 +275,7 @@ export default function Home() {
                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
-            Account
+            Open Games
           </button>
           {playerName === 'billy' && (
             <button

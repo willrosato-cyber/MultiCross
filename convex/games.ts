@@ -108,55 +108,41 @@ export const joinGame = mutation({
   handler: async (ctx, args) => {
     const game = await ctx.db
       .query("games")
-      .withIndex("by_join_code", (q) => q.eq("joinCode", args.joinCode.toUpperCase()))
+      .withIndex("by_join_code", (q) => q.eq("joinCode", args.joinCode))
       .first();
     
     if (!game) {
       throw new Error("Game not found");
     }
     
-    const players = game.players || [];
-    
-    // Dedupe by username (case-insensitive)
-    const existingPlayerByName = players.find(
+    // Check if player already exists (by name, case-insensitive)
+    const existingPlayerIndex = game.players?.findIndex(
       (p) => p.name.toLowerCase() === args.playerName.toLowerCase()
-    );
+    ) ?? -1;
     
-    if (existingPlayerByName) {
-      // Update existing player with new ID (they logged in again)
-      const updatedPlayers = players.map((p) =>
-        p.name.toLowerCase() === args.playerName.toLowerCase()
-          ? { ...p, id: args.playerId }
-          : p
-      );
-      
-      await ctx.db.patch(game._id, {
-        players: updatedPlayers,
-        updatedAt: Date.now(),
+    let updatedPlayers = game.players || [];
+    
+    if (existingPlayerIndex >= 0) {
+      // Player exists, update their ID
+      updatedPlayers[existingPlayerIndex] = {
+        ...updatedPlayers[existingPlayerIndex],
+        id: args.playerId,
+      };
+    } else {
+      // New player, add them
+      // Assign color: creator gets blue (0), second player gets red (1), others cycle
+      const colorIndex = updatedPlayers.length % PLAYER_COLORS.length;
+      updatedPlayers.push({
+        id: args.playerId,
+        name: args.playerName,
+        selectedCell: null,
+        direction: "across",
+        color: PLAYER_COLORS[colorIndex],
       });
-      
-      return game._id;
     }
     
-    // Get unique usernames to determine color assignment
-    const uniqueUsernames = new Set(players.map(p => p.name.toLowerCase()));
-    const userIndex = uniqueUsernames.size;
-    
-    // First player (creator) = blue, second player = red, then cycle through rest
-    let assignedColor = PLAYER_COLORS[userIndex % PLAYER_COLORS.length];
-    
-    // Add new player
     await ctx.db.patch(game._id, {
-      players: [
-        ...players,
-        {
-          id: args.playerId,
-          name: args.playerName,
-          selectedCell: null,
-          direction: "across",
-          color: assignedColor,
-        },
-      ],
+      players: updatedPlayers,
       updatedAt: Date.now(),
     });
     
@@ -182,45 +168,40 @@ export const updateCell = mutation({
   },
   handler: async (ctx, args) => {
     const game = await ctx.db.get(args.gameId);
-    if (!game) throw new Error("Game not found");
-
-    const newGridValues = game.gridValues.map((r, rowIdx) =>
-      r.map((cell, colIdx) =>
-        rowIdx === args.row && colIdx === args.col ? args.value : cell
-      )
-    );
-
+    if (!game) return;
+    
+    const newValues = game.gridValues.map((r) => [...r]);
+    newValues[args.row][args.col] = args.value;
+    
     await ctx.db.patch(args.gameId, {
-      gridValues: newGridValues,
+      gridValues: newValues,
       updatedAt: Date.now(),
     });
   },
 });
 
-// Update selected cell and direction for a specific player
+// Update player's selected cell and direction
 export const updateSelection = mutation({
   args: {
     gameId: v.id("games"),
     playerId: v.string(),
-    selectedCell: v.union(
-      v.null(),
-      v.object({
-        row: v.number(),
-        col: v.number(),
-      })
-    ),
+    selectedCell: v.object({
+      row: v.number(),
+      col: v.number(),
+    }),
     direction: v.union(v.literal("across"), v.literal("down")),
   },
   handler: async (ctx, args) => {
     const game = await ctx.db.get(args.gameId);
-    if (!game) throw new Error("Game not found");
+    if (!game || !game.players) return;
     
-    const players = game.players || [];
-    
-    // Update the specific player's selection
-    const updatedPlayers = players.map((player) =>
+    const updatedPlayers = game.players.map((player) =>
       player.id === args.playerId
-        ? { ...player, selectedCell: args.selectedCell, direction: args.direction }
+        ? {
+            ...player,
+            selectedCell: args.selectedCell,
+            direction: args.direction,
+          }
         : player
     );
     
@@ -231,3 +212,25 @@ export const updateSelection = mutation({
   },
 });
 
+// Delete a game (only creator can delete)
+export const deleteGame = mutation({
+  args: {
+    gameId: v.id("games"),
+    username: v.string(),
+  },
+  handler: async (ctx, { gameId, username }) => {
+    const game = await ctx.db.get(gameId);
+    
+    if (!game) {
+      throw new Error("Game not found");
+    }
+    
+    // Check if user is the creator
+    if (game.createdBy !== username) {
+      throw new Error("Only the creator can delete this game");
+    }
+    
+    // Delete the game
+    await ctx.db.delete(gameId);
+  },
+});
