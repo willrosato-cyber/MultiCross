@@ -27,6 +27,7 @@ export default function Home() {
   const [gridNumbers, setGridNumbers] = useState<number[][] | null>(null);
   const [clues, setClues] = useState<{ across: Clue[]; down: Clue[] } | null>(null);
   const [gridSize, setGridSize] = useState<15 | 21>(15); // Default to 15x15 (Mon-Sat)
+  const [theme, setTheme] = useState<string>("");
   const [gameId, setGameId] = useState<Id<"games"> | null>(null);
   const [joinCode, setJoinCode] = useState<string>("");
   const [playerId, setPlayerId] = useState<string>("");
@@ -66,6 +67,7 @@ export default function Home() {
       setGridNumbers(gameData.gridNumbers as number[][]);
       setClues(gameData.clues);
       setGridSize(gameData.gridSize);
+      setTheme(gameData.theme || "");
       setJoinCode(gameData.joinCode || "");
     }
   }, [gameData, gridPattern]);
@@ -105,14 +107,16 @@ export default function Home() {
     setActiveTab('setup');
   };
 
-  const handleSetupComplete = async (pattern: number[][], numbers: number[][], cluesData: { across: Clue[]; down: Clue[] }) => {
+  const handleSetupComplete = async (pattern: number[][], numbers: number[][], cluesData: { across: Clue[]; down: Clue[] }, puzzleTheme?: string) => {
     console.log("=== handleSetupComplete called ===");
     console.log("playerId:", playerId);
     console.log("playerName:", playerName);
+    console.log("theme:", puzzleTheme);
     
     setGridPattern(pattern);
     setGridNumbers(numbers);
     setClues(cluesData);
+    setTheme(puzzleTheme || "");
     
     // Create a new multiplayer game in Convex
     try {
@@ -121,6 +125,7 @@ export default function Home() {
         gridPattern: pattern,
         gridNumbers: numbers,
         gridSize: gridSize,
+        theme: puzzleTheme,
         clues: {
           across: cluesData.across.map(c => ({ ...c, direction: "across" as const })),
           down: cluesData.down.map(c => ({ ...c, direction: "down" as const })),
@@ -310,6 +315,7 @@ export default function Home() {
                 customNumbers={gridNumbers} 
                 customClues={clues} 
                 gridSize={gridSize}
+                theme={theme}
                 gameId={gameId}
                 playerId={playerId}
                 joinCode={joinCode}
@@ -327,7 +333,8 @@ export default function Home() {
                 customPattern={gridPattern} 
                 customNumbers={gridNumbers} 
                 customClues={clues} 
-                gridSize={gridSize} 
+                gridSize={gridSize}
+                theme={theme}
                 showAnswers={true}
                 gameId={null}
                 playerId={playerId}

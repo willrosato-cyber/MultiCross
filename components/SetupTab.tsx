@@ -13,7 +13,7 @@ interface Clue {
 }
 
 interface SetupTabProps {
-  onComplete: (pattern: number[][], clueNumbers: number[][], clues: { across: Clue[]; down: Clue[] }) => void;
+  onComplete: (pattern: number[][], clueNumbers: number[][], clues: { across: Clue[]; down: Clue[] }, theme?: string) => void;
   onPlay: () => void;
   gridSize: 15 | 21;
   onGridSizeChange: (size: 15 | 21) => void;
@@ -46,6 +46,7 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
   const [clueParseProgress, setClueParseProgress] = useState(0);
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [showCreatePuzzle, setShowCreatePuzzle] = useState(false);
+  const [themeText, setThemeText] = useState('');
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -587,7 +588,7 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
       
       // Parse clues
       const clues = parseClues(cluesText, numbers);
-      onComplete(pattern, numbers, clues); // Pass clues
+      onComplete(pattern, numbers, clues, gridSize === 21 ? themeText : undefined); // Pass theme for Sunday puzzles
     }
   };
 
@@ -890,6 +891,23 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
           {/* Enter Clues */}
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-xl font-semibold mb-4">2. Enter Clues</h3>
+            
+            {/* Theme Input (Sunday puzzles only) */}
+            {gridSize === 21 && (
+              <div className="mb-4 pb-4 border-b border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Theme (Sunday puzzle)
+                </label>
+                <input
+                  type="text"
+                  value={themeText}
+                  onChange={(e) => setThemeText(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                  placeholder="e.g. 'Wordplay with Famous Quotes'"
+                />
+              </div>
+            )}
+            
             <p className="text-sm text-gray-600 mb-2">
               Format: <code className="bg-gray-100 px-1 text-xs">ACROSS</code> then list, 
               then <code className="bg-gray-100 px-1 text-xs">DOWN</code> then list

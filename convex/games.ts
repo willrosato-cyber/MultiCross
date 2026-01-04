@@ -28,6 +28,7 @@ export const createGame = mutation({
     gridPattern: v.array(v.array(v.number())),
     gridNumbers: v.array(v.array(v.number())),
     gridSize: v.union(v.literal(15), v.literal(21)),
+    theme: v.optional(v.string()),
     clues: v.object({
       across: v.array(
         v.object({
@@ -77,6 +78,7 @@ export const createGame = mutation({
         .fill("")
         .map(() => Array(args.gridSize).fill("")),
       gridSize: args.gridSize,
+      theme: args.theme,
       clues: args.clues,
       selectedCell: null,
       direction: "across",

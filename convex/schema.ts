@@ -7,6 +7,7 @@ export default defineSchema({
     gridNumbers: v.array(v.array(v.number())),
     gridValues: v.array(v.array(v.string())),
     gridSize: v.union(v.literal(15), v.literal(21)),
+    theme: v.optional(v.string()), // Theme for Sunday (21x21) puzzles
     clues: v.object({
       across: v.array(
         v.object({

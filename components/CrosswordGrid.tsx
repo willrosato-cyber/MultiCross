@@ -151,13 +151,14 @@ interface CrosswordGridProps {
   customNumbers?: number[][];
   customClues?: { across: Clue[]; down: Clue[] } | null;
   gridSize?: 15 | 21;
+  theme?: string;
   showAnswers?: boolean;
   gameId?: Id<"games"> | null;
   playerId: string;
   joinCode: string;
 }
 
-export default function CrosswordGrid({ customPattern, customNumbers, customClues, gridSize = 15, showAnswers = false, gameId = null, playerId, joinCode }: CrosswordGridProps) {
+export default function CrosswordGrid({ customPattern, customNumbers, customClues, gridSize = 15, theme, showAnswers = false, gameId = null, playerId, joinCode }: CrosswordGridProps) {
   const GRID_SIZE = gridSize;
   const pattern = customPattern || CROSSWORD_DATA.pattern;
   const clueNumbersGrid = customNumbers || CROSSWORD_DATA.grid;
@@ -1125,6 +1126,16 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 >
                   📋 {isMobile ? 'Copy' : 'Copy Code'}
                 </button>
+              </div>
+            )}
+            
+            {/* Theme Banner (Sunday puzzles only) */}
+            {theme && (
+              <div className="bg-purple-50 px-2 md:px-4 py-1 md:py-2 rounded-lg border-2 border-purple-200">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-purple-700 font-semibold">THEME:</span>
+                  <span className="text-base text-purple-900 font-medium">{theme}</span>
+                </div>
               </div>
             )}
             
