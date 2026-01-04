@@ -36,10 +36,30 @@ export default function Home() {
   const createGame = useMutation(api.games.createGame);
   const joinGame = useMutation(api.games.joinGame);
   const gameData = useQuery(api.games.getGame, gameId ? { gameId } : "skip");
+  const sessionControl = useQuery(api.auth?.getSessionControl, api.auth?.getSessionControl ? {} : "skip");
   
   // Optional mutations for new features (may not exist in older deployments)
   const logActivity = useMutation(api.users?.logActivity || null as any);
   const initializeUsers = useMutation(api.users?.initializeUsers || null as any);
+
+  // Check for session invalidation
+  useEffect(() => {
+    if (!sessionControl || !isAuthenticated) return;
+    
+    const loginTime = parseInt(localStorage.getItem('loginTimestamp') || '0');
+    
+    if (loginTime && loginTime < sessionControl.invalidateAfter) {
+      // Force logout
+      console.log("Session invalidated by admin. Logging out...");
+      localStorage.clear();
+      setIsAuthenticated(false);
+      setPlayerName('');
+      setGameId(null);
+      setJoinCode('');
+      setActiveTab('setup');
+      alert("You have been logged out. Please log in again with your own credentials.");
+    }
+  }, [sessionControl, isAuthenticated]);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -85,6 +105,7 @@ export default function Home() {
   const handleLogin = (username: string) => {
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('username', username);
+    localStorage.setItem('loginTimestamp', Date.now().toString());
     setIsAuthenticated(true);
     setPlayerName(username);
     // Log the login activity (if available)

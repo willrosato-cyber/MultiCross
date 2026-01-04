@@ -72,5 +72,10 @@ export default defineSchema({
     joinCode: v.optional(v.string()),
     timestamp: v.number(),
   }).index("by_username", ["username"]).index("by_timestamp", ["timestamp"]),
+  
+  sessionControl: defineTable({
+    invalidateAfter: v.number(),
+    reason: v.string(),
+  }),
 });
 

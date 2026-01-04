@@ -7,6 +7,7 @@ import { useState } from "react";
 export default function AdminTab() {
   const [migrationResult, setMigrationResult] = useState<any>(null);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isInvalidating, setIsInvalidating] = useState(false);
   
   // Safely query admin data (may not exist in older deployments)
   let users, activityLog;
@@ -19,6 +20,7 @@ export default function AdminTab() {
   }
 
   const migrateUsernames = useMutation(api.migrateUsernames?.migrateUsernames || null as any);
+  const invalidateAllSessions = useMutation(api.auth?.invalidateAllSessions || null as any);
 
   const handleMigration = async () => {
     if (!migrateUsernames) {
@@ -40,6 +42,36 @@ export default function AdminTab() {
       alert("Migration failed. Check console for details.");
     } finally {
       setIsMigrating(false);
+    }
+  };
+
+  const handleInvalidateAllSessions = async () => {
+    if (!invalidateAllSessions) {
+      alert("Session invalidation function not available");
+      return;
+    }
+    
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert("Not logged in");
+      return;
+    }
+    
+    if (!confirm("⚠️ This will LOG OUT ALL USERS (including you) on their next page refresh/reload.\n\nUse this to force everyone to re-login with their own credentials.\n\nContinue?")) {
+      return;
+    }
+    
+    setIsInvalidating(true);
+    try {
+      await invalidateAllSessions({ adminUsername: username });
+      alert("✅ All sessions invalidated!\n\nAll users (including you) will be logged out when they refresh the page.\n\nYou'll be logged out now.");
+      // Logout yourself immediately
+      localStorage.clear();
+      window.location.reload();
+    } catch (error) {
+      console.error("Session invalidation error:", error);
+      alert("Failed to invalidate sessions. Check console for details.");
+      setIsInvalidating(false);
     }
   };
 
@@ -68,31 +100,58 @@ export default function AdminTab() {
         <p className="text-gray-600">For authorized personnel only</p>
       </div>
 
-      {/* Migration Tool */}
-      <div className="mb-8 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-3 text-yellow-800">⚙️ Data Migration</h3>
-        <p className="text-sm text-gray-700 mb-4">
-          Fix old usernames in games and activity logs (billy → will, saran → sara)
-        </p>
-        <button
-          onClick={handleMigration}
-          disabled={isMigrating}
-          className={`px-6 py-2 rounded-lg font-semibold transition ${
-            isMigrating
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-yellow-600 text-white hover:bg-yellow-700'
-          }`}
-        >
-          {isMigrating ? 'Migrating...' : '🔄 Run Username Migration'}
-        </button>
-        {migrationResult && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-semibold text-green-800">✅ Migration Complete!</p>
-            <p className="text-sm text-gray-700">Games updated: {migrationResult.gamesUpdated}</p>
-            <p className="text-sm text-gray-700">Players updated: {migrationResult.playersUpdated}</p>
-            <p className="text-sm text-gray-700">Activity logs updated: {migrationResult.activityLogsUpdated}</p>
-          </div>
-        )}
+      {/* Migration Tools */}
+      <div className="mb-8 space-y-4">
+        {/* Username Migration */}
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
+          <h3 className="text-xl font-bold mb-3 text-yellow-800">⚙️ Username Migration</h3>
+          <p className="text-sm text-gray-700 mb-4">
+            Fix old usernames in games and activity logs (billy → will, saran → sara)
+          </p>
+          <button
+            onClick={handleMigration}
+            disabled={isMigrating}
+            className={`px-6 py-2 rounded-lg font-semibold transition ${
+              isMigrating
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-yellow-600 text-white hover:bg-yellow-700'
+            }`}
+          >
+            {isMigrating ? 'Migrating...' : '🔄 Run Username Migration'}
+          </button>
+          {migrationResult && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+              <p className="font-semibold text-green-800">✅ Migration Complete!</p>
+              <p className="text-sm text-gray-700">Games updated: {migrationResult.gamesUpdated}</p>
+              <p className="text-sm text-gray-700">Players updated: {migrationResult.playersUpdated}</p>
+              <p className="text-sm text-gray-700">Activity logs updated: {migrationResult.activityLogsUpdated}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Session Invalidation */}
+        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6">
+          <h3 className="text-xl font-bold mb-3 text-red-800">🚪 Force Logout All Users</h3>
+          <p className="text-sm text-gray-700 mb-4">
+            <strong>One-time cleanup:</strong> Force everyone to re-login with their own credentials.
+            <br />
+            <span className="text-red-600 font-semibold">⚠️ Use this only once after dogfooding phase!</span>
+          </p>
+          <button
+            onClick={handleInvalidateAllSessions}
+            disabled={isInvalidating}
+            className={`px-6 py-2 rounded-lg font-semibold transition ${
+              isInvalidating
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-red-600 text-white hover:bg-red-700'
+            }`}
+          >
+            {isInvalidating ? 'Invalidating...' : '🚪 Logout All Users'}
+          </button>
+          <p className="text-xs text-gray-600 mt-3">
+            All users (including you) will be logged out on next page refresh.
+          </p>
+        </div>
       </div>
 
       {/* Users Section */}
