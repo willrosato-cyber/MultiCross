@@ -512,10 +512,14 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   const handleKeyDown = (e: React.KeyboardEvent, row: number, col: number) => {
     if (isBlackSquare(row, col)) return;
 
-    // Handle Tab key for moving to next clue
+    // Handle Tab key for moving to next/previous clue
     if (e.key === 'Tab') {
       e.preventDefault();
-      moveToNextClue();
+      if (e.shiftKey) {
+        moveToPrevClue(); // Shift+Tab goes to previous clue
+      } else {
+        moveToNextClue(); // Tab goes to next clue
+      }
       return;
     }
 
