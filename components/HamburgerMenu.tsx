@@ -6,8 +6,8 @@ interface HamburgerMenuProps {
   playerName: string;
   subtitle: string;
   joinCode: string;
-  activeTab: 'setup' | 'play' | 'answers';
-  onTabChange: (tab: 'setup' | 'play' | 'answers') => void;
+  activeTab: 'setup' | 'play' | 'answers' | 'account' | 'admin';
+  onTabChange: (tab: 'setup' | 'play' | 'answers' | 'account' | 'admin') => void;
   onLogout: () => void;
   canPlay: boolean;
 }
@@ -115,6 +115,34 @@ export default function HamburgerMenu({
             >
               Play
             </button>
+            <button
+              onClick={() => {
+                onTabChange('account');
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition ${
+                activeTab === 'account'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Account
+            </button>
+            {playerName === 'billy' && (
+              <button
+                onClick={() => {
+                  onTabChange('admin');
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition ${
+                  activeTab === 'admin'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-red-100 text-red-600 hover:bg-red-200'
+                }`}
+              >
+                🔒 Admin
+              </button>
+            )}
           </div>
 
           {/* Logout */}

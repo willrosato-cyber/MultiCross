@@ -8,6 +8,8 @@ import CrosswordGrid from "@/components/CrosswordGrid";
 import SetupTab from "@/components/SetupTab";
 import LoginPage from "@/components/LoginPage";
 import HamburgerMenu from "@/components/HamburgerMenu";
+import AccountTab from "@/components/AccountTab";
+import AdminTab from "@/components/AdminTab";
 
 interface Clue {
   number: number;
@@ -20,7 +22,7 @@ interface Clue {
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'setup' | 'play' | 'answers'>('setup');
+  const [activeTab, setActiveTab] = useState<'setup' | 'play' | 'answers' | 'account' | 'admin'>('setup');
   const [gridPattern, setGridPattern] = useState<number[][] | null>(null);
   const [gridNumbers, setGridNumbers] = useState<number[][] | null>(null);
   const [clues, setClues] = useState<{ across: Clue[]; down: Clue[] } | null>(null);
@@ -32,6 +34,8 @@ export default function Home() {
   
   const createGame = useMutation(api.games.createGame);
   const joinGame = useMutation(api.games.joinGame);
+  const logActivity = useMutation(api.users.logActivity);
+  const initializeUsers = useMutation(api.users.initializeUsers);
   const gameData = useQuery(api.games.getGame, gameId ? { gameId } : "skip");
 
   // Check if user is authenticated on mount
@@ -43,6 +47,11 @@ export default function Home() {
       setPlayerName(storedUsername);
     }
   }, []);
+
+  // Initialize users in database on first load
+  useEffect(() => {
+    initializeUsers().catch(console.error);
+  }, [initializeUsers]);
 
   // Sync game data from Convex when gameId changes
   useEffect(() => {
@@ -71,6 +80,11 @@ export default function Home() {
     localStorage.setItem('username', username);
     setIsAuthenticated(true);
     setPlayerName(username);
+    // Log the login activity
+    logActivity({
+      username,
+      action: 'login',
+    }).catch(console.error);
   };
 
   const handleLogout = () => {
@@ -122,6 +136,12 @@ export default function Home() {
       if (result && result.joinCode) {
         setJoinCode(result.joinCode);
         console.log("✅ Set joinCode:", result.joinCode);
+        // Log game creation activity
+        logActivity({
+          username: playerName,
+          action: 'game_created',
+          joinCode: result.joinCode,
+        }).catch(console.error);
       } else {
         console.error("❌ No joinCode in result!");
       }
@@ -142,6 +162,12 @@ export default function Home() {
       console.log("✅ Joined! Game ID:", gameIdResult);
       setGameId(gameIdResult);
       setJoinCode(code.toUpperCase());
+      // Log game joined activity
+      logActivity({
+        username: playerName,
+        action: 'game_joined',
+        joinCode: code.toUpperCase(),
+      }).catch(console.error);
       // Game data will be fetched automatically via useQuery
       alert(`Joined game ${code}!`);
       setActiveTab('play');
@@ -230,6 +256,28 @@ export default function Home() {
           >
             Play
           </button>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`px-4 md:px-6 py-3 rounded-t-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
+              activeTab === 'account'
+                ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }`}
+          >
+            Account
+          </button>
+          {playerName === 'billy' && (
+            <button
+              onClick={() => setActiveTab('admin')}
+              className={`px-4 md:px-6 py-3 rounded-t-lg font-semibold transition text-sm md:text-base whitespace-nowrap ${
+                activeTab === 'admin'
+                  ? 'bg-white text-red-600 border-b-2 border-red-600'
+                  : 'bg-red-100 text-red-600 hover:bg-red-200'
+              }`}
+            >
+              🔒 Admin
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -280,6 +328,16 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          <div style={{ display: activeTab === 'account' ? 'block' : 'none' }}>
+            <AccountTab username={playerName} onJoinGame={handleJoinGame} />
+          </div>
+
+          {playerName === 'billy' && (
+            <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
+              <AdminTab />
+            </div>
+          )}
         </div>
       </div>
     </main>
