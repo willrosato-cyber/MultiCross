@@ -237,6 +237,16 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     }
   }, [isMobile]);
 
+  // Start game with 1 across in context
+  useEffect(() => {
+    if (acrossClues.length > 0 && !selectedCell && !selectedClue) {
+      const firstClue = acrossClues[0];
+      setSelectedCell({ row: firstClue.row, col: firstClue.col });
+      setSelectedClue(firstClue);
+      setDirection('across');
+    }
+  }, [acrossClues, selectedCell, selectedClue]);
+
   // Sync game state from Convex
   useEffect(() => {
     if (game && gameId) {
@@ -659,7 +669,21 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
           return;
         }
       }
-      // If no empty cell found in current word, move to next word
+      // No empty cell found after cursor, check if there are blanks before cursor in current word
+      if (selectedClue) {
+        for (let col = selectedClue.col; col < currentCol; col++) {
+          if (isBlackSquare(currentRow, col)) break;
+          if (gridValues[currentRow][col] === '') {
+            setSelectedCell({ row: currentRow, col });
+            // Sync selection to Convex
+            if (gameId && playerId) {
+              updateSelection({ gameId, playerId, selectedCell: { row: currentRow, col }, direction });
+            }
+            return;
+          }
+        }
+      }
+      // If no empty cell found in current word at all, move to next clue
       moveToNextClue();
     } else {
       // Find next empty cell in the same column
@@ -674,7 +698,21 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
           return;
         }
       }
-      // If no empty cell found in current word, move to next word
+      // No empty cell found after cursor, check if there are blanks before cursor in current word
+      if (selectedClue) {
+        for (let row = selectedClue.row; row < currentRow; row++) {
+          if (isBlackSquare(row, currentCol)) break;
+          if (gridValues[row][currentCol] === '') {
+            setSelectedCell({ row, col: currentCol });
+            // Sync selection to Convex
+            if (gameId && playerId) {
+              updateSelection({ gameId, playerId, selectedCell: { row, col: currentCol }, direction });
+            }
+            return;
+          }
+        }
+      }
+      // If no empty cell found in current word at all, move to next clue
       moveToNextClue();
     }
   };
@@ -745,11 +783,35 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     const nextClue = clues[nextClueIndex];
     
     if (nextClue) {
-      setSelectedCell({ row: nextClue.row, col: nextClue.col });
+      // Find the first empty cell in the next clue
+      let targetRow = nextClue.row;
+      let targetCol = nextClue.col;
+      
+      if (direction === 'across') {
+        // Search for first empty cell in the across word
+        for (let col = nextClue.col; col < GRID_SIZE; col++) {
+          if (isBlackSquare(nextClue.row, col)) break;
+          if (gridValues[nextClue.row][col] === '') {
+            targetCol = col;
+            break;
+          }
+        }
+      } else {
+        // Search for first empty cell in the down word
+        for (let row = nextClue.row; row < GRID_SIZE; row++) {
+          if (isBlackSquare(row, nextClue.col)) break;
+          if (gridValues[row][nextClue.col] === '') {
+            targetRow = row;
+            break;
+          }
+        }
+      }
+      
+      setSelectedCell({ row: targetRow, col: targetCol });
       setSelectedClue(nextClue);
       // Sync to Convex
       if (gameId && playerId) {
-        updateSelection({ gameId, playerId, selectedCell: { row: nextClue.row, col: nextClue.col }, direction });
+        updateSelection({ gameId, playerId, selectedCell: { row: targetRow, col: targetCol }, direction });
       }
     }
   };
@@ -767,11 +829,35 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     const prevClue = clues[prevClueIndex];
     
     if (prevClue) {
-      setSelectedCell({ row: prevClue.row, col: prevClue.col });
+      // Find the first empty cell in the previous clue
+      let targetRow = prevClue.row;
+      let targetCol = prevClue.col;
+      
+      if (direction === 'across') {
+        // Search for first empty cell in the across word
+        for (let col = prevClue.col; col < GRID_SIZE; col++) {
+          if (isBlackSquare(prevClue.row, col)) break;
+          if (gridValues[prevClue.row][col] === '') {
+            targetCol = col;
+            break;
+          }
+        }
+      } else {
+        // Search for first empty cell in the down word
+        for (let row = prevClue.row; row < GRID_SIZE; row++) {
+          if (isBlackSquare(row, prevClue.col)) break;
+          if (gridValues[row][prevClue.col] === '') {
+            targetRow = row;
+            break;
+          }
+        }
+      }
+      
+      setSelectedCell({ row: targetRow, col: targetCol });
       setSelectedClue(prevClue);
       // Sync to Convex
       if (gameId && playerId) {
-        updateSelection({ gameId, playerId, selectedCell: { row: prevClue.row, col: prevClue.col }, direction });
+        updateSelection({ gameId, playerId, selectedCell: { row: targetRow, col: targetCol }, direction });
       }
     }
   };
@@ -889,6 +975,62 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
     }
   };
 
+  // Check if a cell is in another player's current word
+  const getOtherPlayerWordColor = (row: number, col: number) => {
+    if (!game?.players) return null;
+    
+    // Check each other player
+    for (const player of game.players) {
+      if (player.id === playerId) continue; // Skip current player
+      if (!player.selectedCell || !player.direction) continue;
+      
+      const playerRow = player.selectedCell.row;
+      const playerCol = player.selectedCell.col;
+      
+      // Check if this cell is in the other player's word
+      if (player.direction === 'across') {
+        if (row !== playerRow) continue;
+        if (isBlackSquare(row, col)) continue;
+        
+        // Find the start and end of the word containing the player's selected cell
+        let start = playerCol;
+        let end = playerCol;
+        
+        while (start > 0 && !isBlackSquare(playerRow, start - 1)) {
+          start--;
+        }
+        while (end < GRID_SIZE - 1 && !isBlackSquare(playerRow, end + 1)) {
+          end++;
+        }
+        
+        if (col >= start && col <= end) {
+          return player.color; // Return the player's color
+        }
+      } else {
+        // Down direction
+        if (col !== playerCol) continue;
+        if (isBlackSquare(row, col)) continue;
+        
+        // Find the start and end of the word containing the player's selected cell
+        let start = playerRow;
+        let end = playerRow;
+        
+        while (start > 0 && !isBlackSquare(start - 1, playerCol)) {
+          start--;
+        }
+        while (end < GRID_SIZE - 1 && !isBlackSquare(end + 1, playerCol)) {
+          end++;
+        }
+        
+        if (row >= start && row <= end) {
+          return player.color; // Return the player's color
+        }
+      }
+    }
+    
+    return null;
+  };
+
   return (
     <div className={`${isMobile ? 'flex flex-col' : 'flex gap-6'} max-w-7xl mx-auto`} style={isMobile ? { height: 'calc(100vh - 40px)', overflow: 'hidden' } : {}}>
       
@@ -996,6 +1138,9 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 // Get the first other player's color for the ring (if multiple players, just show one)
                 const otherPlayerColor = otherPlayersHere.length > 0 ? otherPlayersHere[0].color : null;
                 
+                // Check if this cell is in another player's word (for light shading)
+                const otherPlayerWordColor = getOtherPlayerWordColor(rowIndex, colIndex);
+                
                 const cellSize = isMobile 
                   ? `w-[${gridCellSize}px] h-[${gridCellSize}px]`
                   : GRID_SIZE === 21 ? 'w-[30px] h-[30px]' : 'w-10 h-10';
@@ -1019,7 +1164,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       relative border border-gray-300 flex items-center justify-center
                       font-bold cursor-pointer transition-all
                       ${isBlack ? 'bg-black' : ''}
-                      ${!isBlack && !isSelected && !isInWord && !otherPlayerColor ? 'bg-white hover:bg-gray-50' : ''}
+                      ${!isBlack && !isSelected && !isInWord && !otherPlayerColor && !otherPlayerWordColor ? 'bg-white hover:bg-gray-50' : ''}
                       ${isInWord && !isBlack && !isSelected && !otherPlayerColor ? 'bg-blue-200' : ''}
                       ${isSelected && !isBlack ? 'ring-4 ring-inset bg-yellow-200 z-10' : ''}
                       ${otherPlayerColor && !isSelected && !isBlack ? 'ring-4 ring-inset z-10' : ''}
@@ -1032,6 +1177,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                         ? { '--tw-ring-color': myColor } as React.CSSProperties
                         : otherPlayerColor && !isSelected && !isBlack
                         ? { '--tw-ring-color': otherPlayerColor } as React.CSSProperties
+                        : {}),
+                      // Light shading for other player's word
+                      ...(!isSelected && !isInWord && otherPlayerWordColor && !isBlack
+                        ? { backgroundColor: `${otherPlayerWordColor}33` } as React.CSSProperties // 33 = 20% opacity
                         : {})
                     }}
                     onClick={() => handleCellClick(rowIndex, colIndex)}

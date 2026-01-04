@@ -91,6 +91,7 @@ export const createGame = mutation({
         },
       ],
       createdAt: Date.now(),
+      createdBy: args.playerName,
       updatedAt: Date.now(),
     });
     return { gameId, joinCode };

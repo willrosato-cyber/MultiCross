@@ -54,7 +54,22 @@ export default defineSchema({
       })
     )),
     createdAt: v.optional(v.number()),
+    createdBy: v.optional(v.string()), // Username of creator
     updatedAt: v.optional(v.number()),
-  }).index("by_join_code", ["joinCode"]),
+  }).index("by_join_code", ["joinCode"]).index("by_creator", ["createdBy"]),
+  
+  users: defineTable({
+    username: v.string(),
+    password: v.string(),
+    createdAt: v.number(),
+  }).index("by_username", ["username"]),
+  
+  activityLog: defineTable({
+    username: v.string(),
+    action: v.union(v.literal("login"), v.literal("game_created"), v.literal("game_joined")),
+    gameId: v.optional(v.string()),
+    joinCode: v.optional(v.string()),
+    timestamp: v.number(),
+  }).index("by_username", ["username"]).index("by_timestamp", ["timestamp"]),
 });
 

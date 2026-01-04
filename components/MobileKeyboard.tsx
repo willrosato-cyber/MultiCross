@@ -11,7 +11,7 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
   const bottomRow = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
   return (
-    <div className="w-full h-full bg-white flex flex-col justify-center gap-2 px-2 py-3">
+    <div className="w-full h-full bg-white flex flex-col justify-center gap-2 px-2 py-3" style={{ touchAction: 'manipulation' }}>
       {/* Row 1: Q-P */}
       <div className="flex gap-[6px] justify-center">
         {topRow.map((key) => (
@@ -19,6 +19,7 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
             key={key}
             onClick={() => onKeyPress(key)}
             className="flex-1 h-[44px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            style={{ touchAction: 'manipulation' }}
           >
             {key}
           </button>
@@ -32,6 +33,7 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
             key={key}
             onClick={() => onKeyPress(key)}
             className="flex-1 h-[44px] max-w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            style={{ touchAction: 'manipulation' }}
           >
             {key}
           </button>
@@ -47,13 +49,15 @@ export default function MobileKeyboard({ onKeyPress, onBackspace }: MobileKeyboa
             key={key}
             onClick={() => onKeyPress(key)}
             className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-xl font-normal active:bg-gray-400"
+            style={{ touchAction: 'manipulation' }}
           >
             {key}
           </button>
         ))}
         <button
           onClick={onBackspace}
-          className="h-[44px] flex-1 bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
+          className="h-[44px] w-[36px] bg-gray-200 rounded text-black text-lg font-normal flex items-center justify-center active:bg-gray-400"
+          style={{ touchAction: 'manipulation' }}
         >
           ⌫
         </button>
