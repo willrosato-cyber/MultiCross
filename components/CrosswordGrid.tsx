@@ -1140,10 +1140,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               </div>
             )}
             
-            {/* Timer and Players - Combined Single Line */}
+            {/* Players Section */}
             <div className="flex items-center justify-between">
-              <div className={`${isMobile ? 'text-sm' : 'text-xl md:text-2xl'} font-mono font-bold`}>{formatTime(time)}</div>
-              
               {/* Players List */}
               {game && game.players && (
                 <div className={`flex items-center gap-1 ${isMobile ? 'text-[10px]' : 'text-sm'}`}>
