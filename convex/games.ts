@@ -212,7 +212,7 @@ export const updateSelection = mutation({
   },
 });
 
-// Delete a game (only creator can delete)
+// Delete a game (creator or billy can delete)
 export const deleteGame = mutation({
   args: {
     gameId: v.id("games"),
@@ -225,9 +225,13 @@ export const deleteGame = mutation({
       throw new Error("Game not found");
     }
     
-    // Check if user is the creator
-    if (game.createdBy !== username) {
-      throw new Error("Only the creator can delete this game");
+    // Check if user is the creator OR is billy (admin)
+    const isCreator = game.createdBy === username;
+    const isAdmin = username.toLowerCase() === 'billy';
+    const isPlayer = game.players?.some(p => p.name.toLowerCase() === username.toLowerCase());
+    
+    if (!isCreator && !(isAdmin && isPlayer)) {
+      throw new Error("Only the creator or admin can delete this game");
     }
     
     // Delete the game

@@ -66,6 +66,8 @@ export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {userGames.map((game) => {
             const isCreator = game.createdBy === username;
+            const isAdmin = username.toLowerCase() === 'billy';
+            const canDelete = isCreator || isAdmin;
             const playerCount = game.players?.length || 0;
             
             return (
@@ -128,12 +130,12 @@ export default function AccountTab({ username, onJoinGame }: AccountTabProps) {
                   Rejoin Game
                 </button>
 
-                {isCreator && (
+                {canDelete && (
                   <button
                     onClick={() => handleDeleteGame(game._id)}
                     className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700 transition mt-2"
                   >
-                    Delete Game
+                    {isAdmin && !isCreator ? '🔒 Admin Delete' : 'Delete Game'}
                   </button>
                 )}
               </div>
