@@ -51,7 +51,8 @@ export default function Home() {
   // Initialize users in database on first load
   useEffect(() => {
     initializeUsers().catch(console.error);
-  }, [initializeUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync game data from Convex when gameId changes
   useEffect(() => {
