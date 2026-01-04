@@ -1227,7 +1227,6 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                       font-bold cursor-pointer transition-all
                       ${isBlack ? 'bg-black' : ''}
                       ${!isBlack && !isSelected && !isInWord && !otherPlayerColor && !otherPlayerWordColor ? 'bg-white hover:bg-gray-50' : ''}
-                      ${isInWord && !isBlack && !isSelected && !otherPlayerColor ? 'bg-blue-200' : ''}
                       ${isSelected && !isBlack ? 'ring-4 ring-inset bg-yellow-200 z-10' : ''}
                       ${otherPlayerColor && !isSelected && !isBlack ? 'ring-4 ring-inset z-10' : ''}
                       focus:outline-none
@@ -1239,6 +1238,10 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                         ? { '--tw-ring-color': myColor } as React.CSSProperties
                         : otherPlayerColor && !isSelected && !isBlack
                         ? { '--tw-ring-color': otherPlayerColor } as React.CSSProperties
+                        : {}),
+                      // Light shading for current player's word
+                      ...(isInWord && !isSelected && !isBlack && myColor
+                        ? { backgroundColor: `${myColor}33` } as React.CSSProperties // 33 = 20% opacity
                         : {}),
                       // Light shading for other player's word
                       ...(!isSelected && !isInWord && otherPlayerWordColor && !isBlack
