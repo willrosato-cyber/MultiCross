@@ -191,6 +191,7 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
   const [myColor, setMyColor] = useState<string>("#3B82F6"); // Default blue
   const [isHandlingKeypress, setIsHandlingKeypress] = useState(false);
   const [gridCellSize, setGridCellSize] = useState(18);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const cellRefs = useRef<(HTMLDivElement | null)[][]>(
     Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null))
   );
@@ -1161,11 +1162,12 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
               
               {!isMobile && (
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Rebus</button>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Clear</button>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Reveal</button>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>Check</button>
-                  <button className="px-4 py-2 bg-gray-300 text-gray-500 rounded transition cursor-not-allowed" disabled>?</button>
+                  <button 
+                    onClick={() => setShowHelpModal(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded transition hover:bg-blue-700"
+                  >
+                    ?
+                  </button>
                 </div>
               )}
             </div>
@@ -1265,8 +1267,8 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                   >
                     {!isBlack && cellNumber && (
                       <span 
-                        className={`absolute top-0 left-0.5 font-normal`}
-                        style={isMobile ? { fontSize: `${Math.floor(gridCellSize * 0.35)}px` } : { fontSize: GRID_SIZE === 21 ? '7px' : '9px' }}
+                        className={`absolute top-0 left-0 font-normal`}
+                        style={isMobile ? { fontSize: `${Math.floor(gridCellSize * 0.35)}px`, lineHeight: '1' } : { fontSize: GRID_SIZE === 21 ? '7px' : '9px', lineHeight: '1' }}
                       >
                         {cellNumber}
                       </span>
@@ -1395,6 +1397,28 @@ export default function CrosswordGrid({ customPattern, customNumbers, customClue
                 })}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowHelpModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg p-8 max-w-md mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Help</h2>
+            <p className="text-gray-700 mb-6">More features coming soon!</p>
+            <button
+              onClick={() => setShowHelpModal(false)}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              Got it!
+            </button>
           </div>
         </div>
       )}
