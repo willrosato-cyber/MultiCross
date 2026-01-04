@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Tesseract from 'tesseract.js';
 
 interface Clue {
   number: number;
@@ -26,7 +25,7 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
   // Default crop coordinates based on grid size
   const getDefaultCropCoords = () => {
     if (gridSize === 21) {
-      return { x: 47, y: 6, width: 50, height: 39 }; // Sunday (21x21) defaults
+      return { x: 47, y: 6, width: 50, height: 38 }; // Sunday (21x21) defaults
     }
     return { x: 42, y: 6, width: 54, height: 42 }; // Mon-Sat (15x15) defaults
   };
@@ -42,8 +41,6 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
   const [imageZoom, setImageZoom] = useState(100);
   const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
   const [cluesText, setCluesText] = useState('');
-  const [isParsingClues, setIsParsingClues] = useState(false);
-  const [clueParseProgress, setClueParseProgress] = useState(0);
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [showCreatePuzzle, setShowCreatePuzzle] = useState(false);
   const [themeText, setThemeText] = useState('');
@@ -115,208 +112,6 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
     );
     
     setCroppedPreview(canvas.toDataURL());
-  };
-
-  const preprocessImageForOCR = async (canvas: HTMLCanvasElement): Promise<string> => {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return canvas.toDataURL();
-
-    // Get image data
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    // Increase contrast and convert to grayscale with adaptive thresholding
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      
-      // Convert to grayscale
-      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-      
-      // Increase contrast: if it's closer to white, make it whiter; if closer to black, make it blacker
-      let enhanced = gray;
-      if (gray > 127) {
-        enhanced = Math.min(255, gray * 1.2); // Brighten light areas
-      } else {
-        enhanced = Math.max(0, gray * 0.8);   // Darken dark areas
-      }
-      
-      data[i] = enhanced;
-      data[i + 1] = enhanced;
-      data[i + 2] = enhanced;
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    return canvas.toDataURL();
-  };
-
-  const handleParseClues = async () => {
-    if (!uploadedImage || !imageRef.current) {
-      alert('Please upload an image first');
-      return;
-    }
-
-    setIsParsingClues(true);
-    setClueParseProgress(0);
-
-    try {
-      const img = imageRef.current;
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      // For NYT crosswords, clues are typically on the left side
-      // Parse the entire clue area (left ~45% of image)
-      const clueAreaWidth = Math.floor(img.naturalWidth * 0.45);
-      const clueHeight = img.naturalHeight;
-
-      canvas.width = clueAreaWidth;
-      canvas.height = clueHeight;
-      
-      ctx.drawImage(
-        img,
-        0, 0, clueAreaWidth, clueHeight,  // Source: left portion with clues
-        0, 0, clueAreaWidth, clueHeight   // Destination
-      );
-      
-      const clueImageData = canvas.toDataURL();
-      setClueParseProgress(10);
-
-      // Preprocess image for better OCR: increase contrast and sharpness
-      const preprocessedImage = await preprocessImageForOCR(canvas);
-      setClueParseProgress(15);
-
-      // Use Tesseract with settings optimized for structured lists
-      const result = await Tesseract.recognize(
-        preprocessedImage,
-        'eng',
-        {
-          logger: (m) => {
-            if (m.status === 'recognizing text') {
-              setClueParseProgress(15 + Math.round(m.progress * 75));
-            }
-          }
-        }
-      );
-
-      setClueParseProgress(90);
-
-      // Process the text to find ACROSS/DOWN boundaries
-      const formattedClues = processCluesWithBoundaries(result.data);
-      setCluesText(formattedClues);
-      
-      setClueParseProgress(100);
-      alert('Clues parsed successfully! Review and edit as needed.');
-      
-    } catch (error) {
-      console.error('Error parsing clues:', error);
-      alert('Error parsing clues. Please enter them manually.');
-    } finally {
-      setIsParsingClues(false);
-      setClueParseProgress(0);
-    }
-  };
-
-  const processCluesWithBoundaries = (ocrData: any): string => {
-    // Use the raw text output from Tesseract
-    const rawText = ocrData.text || '';
-    
-    console.log('Raw OCR output:', rawText); // Debug log
-    
-    // Split into lines and clean up
-    const lines = rawText.split('\n')
-      .map((line: string) => line.trim())
-      .filter((line: string) => line.length > 0);
-
-    let acrossClues: string[] = [];
-    let downClues: string[] = [];
-    let currentSection: 'none' | 'across' | 'down' = 'none';
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Check for section headers (case insensitive, allow variations)
-      if (/^ACROSS/i.test(line)) {
-        currentSection = 'across';
-        console.log('Found ACROSS section');
-        continue;
-      }
-      if (/^DOWN/i.test(line)) {
-        currentSection = 'down';
-        console.log('Found DOWN section');
-        continue;
-      }
-
-      // Try to match clue format: number followed by period/space/colon and text
-      // Pattern specifically looks for: 
-      // - One or more digits at start
-      // - Followed by common separators (., :, space, comma, etc.)
-      // - Followed by text (the actual clue)
-      const clueMatch = line.match(/^(\d+)[.\s:,)\]}\-|]+(.+)$/);
-      
-      if (clueMatch) {
-        const number = clueMatch[1];
-        let clueText = clueMatch[2].trim();
-        
-        console.log(`Found clue ${number} in ${currentSection}: ${clueText.substring(0, 30)}...`);
-        
-        // Handle multi-line clues: if next lines don't start with a number or header, append them
-        let j = i + 1;
-        while (j < lines.length) {
-          const nextLine = lines[j].trim();
-          
-          // Stop if we hit a new clue number, section header, or empty line
-          if (!nextLine || 
-              /^\d+[.\s:,)\]}\-|]/.test(nextLine) || 
-              /^ACROSS$/i.test(nextLine) || 
-              /^DOWN$/i.test(nextLine)) {
-            break;
-          }
-          
-          clueText += ' ' + nextLine;
-          console.log(`  Appending line: ${nextLine.substring(0, 20)}...`);
-          i = j;
-          j++;
-        }
-        
-        // Clean up the clue text
-        clueText = clueText
-          .replace(/\s+/g, ' ')  // Normalize whitespace
-          .replace(/[|]/g, '')    // Remove OCR artifacts
-          .replace(/['']/g, "'")  // Normalize quotes
-          .trim();
-        
-        const formattedClue = `${number}. ${clueText}`;
-        
-        if (currentSection === 'across') {
-          acrossClues.push(formattedClue);
-        } else if (currentSection === 'down') {
-          downClues.push(formattedClue);
-        } else {
-          console.log(`Skipping clue ${number} - no section context yet`);
-        }
-      }
-    }
-
-    console.log(`Parsed ${acrossClues.length} ACROSS clues and ${downClues.length} DOWN clues`);
-
-    // Build final output
-    let result = 'ACROSS\n';
-    if (acrossClues.length > 0) {
-      result += acrossClues.join('\n');
-    } else {
-      result += '(No ACROSS clues detected - check image quality or add manually)';
-    }
-    
-    result += '\n\nDOWN\n';
-    if (downClues.length > 0) {
-      result += downClues.join('\n');
-    } else {
-      result += '(No DOWN clues detected - check image quality or add manually)';
-    }
-    
-    return result;
   };
 
   const handleSmartPaste = () => {
@@ -914,15 +709,6 @@ export default function SetupTab({ onComplete, onPlay, gridSize, onGridSizeChang
             </p>
             
             <div className="flex gap-2 mb-3">
-              {uploadedImage && (
-                <button
-                  onClick={handleParseClues}
-                  disabled={isParsingClues}
-                  className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {isParsingClues ? `🔍 OCR... ${clueParseProgress}%` : '🤖 OCR from Image'}
-                </button>
-              )}
               <button
                 onClick={handleSmartPaste}
                 className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition"
