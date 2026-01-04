@@ -8,8 +8,10 @@ interface LoginPageProps {
 
 // Hardcoded users
 const VALID_USERS = {
-  billy: '07312025',
-  saran: '07312025',
+  will: '07312025',
+  sara: '07312025',
+  hannah: 'tenafly',
+  justin: 'patek',
 };
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
